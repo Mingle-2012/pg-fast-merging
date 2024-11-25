@@ -3,4 +3,12 @@ project(Merge)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(Merge main.cpp)
+add_executable(Merge main.cpp
+        metric.h
+        dtype.h
+        graph.h
+        nndescent.h
+        vamana.h
+        taumng.h
+        nsw.h
+        merge.h)
