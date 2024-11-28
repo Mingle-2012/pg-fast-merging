@@ -1,63 +1,40 @@
-//
-// Created by XiaoWu on 2024/11/23.
-//
-
-#ifndef MERGE_TAUMNG_H
-#define MERGE_TAUMNG_H
-
-#include <random>
-#include <omp.h>
-#include "graph.h"
-#include "dtype.h"
-#include "metric.h"
+#include "include/taumng.h"
 
 using namespace merge;
 
-namespace mng {
-template<class DATA_TYPE>
-class TauMNG {
-private:
-    /**
-     * tau
-     */
-    float t_;
 
-    /**
-     * same as k in knn search
-     */
-    int h_;
+taumng::TauMNG::TauMNG(float t,
+                          int h,
+                          int b) {
+    t_ = t;
+    h_ = h;
+    b_ = b;
+}
 
-    /**
-     * search pool size
-     */
-    int b_;
 
-public:
-    TauMNG(float t,
-           int h,
-           int b) : t_(t), h_(h), b_(b) {}
+void taumng::TauMNG::set_b(int b) {
+    this->b_ = b;
+}
 
-    void set_b(int b) {
-        this->b_ = b;
-    }
 
-    void set_h(int h) {
-        this->h_ = h;
-    }
+void taumng::TauMNG::set_h(int h) {
+    this->h_ = h;
+}
 
-    void build(Graph &graph,
-               IndexOracle<DATA_TYPE> &oracle);
 
-};
+void taumng::TauMNG::build(Graph &graph,
+                           IndexOracle &oracle) {
+    Timer timer;
+    timer.start();
 
-template<class DATA_TYPE>
-void TauMNG<DATA_TYPE>::build(Graph &graph,
-                              IndexOracle<DATA_TYPE> &oracle) {
     std::vector<int> final_graph, offsets;
     project(graph, final_graph, offsets);
 
 #pragma omp parallel for schedule(dynamic, 256)
     for (int u = 0; u < graph.size(); ++u) {
+        if (u % 10000 == 0) {
+            logger << "Processing " << u << " / " << graph.size() << std::endl;
+        }
         auto H_u_ = search(oracle, final_graph, offsets, oracle[u], h_, oracle.size(), b_);
         for (auto &v: H_u_) {
             if (u == v.id) {
@@ -90,7 +67,7 @@ void TauMNG<DATA_TYPE>::build(Graph &graph,
             }
         }
     }
-}
-}
 
-#endif //MERGE_TAUMNG_H
+    timer.end();
+    logger << "Construction time: " << timer.elapsed() << "s" << std::endl;
+}

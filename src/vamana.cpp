@@ -1,65 +1,36 @@
-//
-// Created by XiaoWu on 2024/11/23.
-//
-
-#ifndef MERGE_VAMANA_H
-#define MERGE_VAMANA_H
-
-#include <random>
-#include <omp.h>
-#include "graph.h"
-#include "dtype.h"
-#include "metric.h"
+#include "include/vamana.h"
 
 using namespace merge;
 
-namespace diskann {
-template<class DATA_TYPE>
-class Vamana {
-private:
-    /**
-     * alpha
-     */
-    float alpha_;
 
-    /*
-     * search pool size
-     */
-    int L_;
+diskann::Vamana::Vamana(float alpha,
+                          int L,
+                          int R) {
+    alpha_ = alpha;
+    L_ = L;
+    R_ = R;
+}
 
-    /**
-     * maximum number of neighbors
-     */
-    int R_;
 
-    void RobustPrune(Graph &graph,
-                     IndexOracle<DATA_TYPE> &oracle,
-                     float alpha,
-                     int point,
-                     std::vector<Neighbor> &candidates);
+void diskann::Vamana::set_alpha(float alpha) {
+    this->alpha_ = alpha;
+}
 
-public:
-    Vamana(float alpha,
-           int L,
-           int R) : alpha_(alpha), L_(L), R_(R) {}
 
-    void set_alpha(float alpha) {
-        this->alpha_ = alpha;
-    }
+void diskann::Vamana::set_L(int L) {
+    this->L_ = L;
+}
 
-    void set_L(int L) {
-        this->L_ = L;
-    }
 
-    void set_R(int R) {
-        this->R_ = R;
-    }
+void diskann::Vamana::set_R(int R) {
+    this->R_ = R;
+}
 
-    Graph build(IndexOracle<DATA_TYPE> &oracle);
-};
 
-template<class DATA_TYPE>
-Graph Vamana<DATA_TYPE>::build(IndexOracle<DATA_TYPE> &oracle) {
+Graph diskann::Vamana::build(IndexOracle &oracle) {
+    Timer timer;
+    timer.start();
+
     int n = oracle.size();
     Graph graph(n);
     std::mt19937 rng(2024);
@@ -103,6 +74,9 @@ Graph Vamana<DATA_TYPE>::build(IndexOracle<DATA_TYPE> &oracle) {
     std::iota(permutation.begin(), permutation.end(), 0);
     std::shuffle(permutation.begin(), permutation.end(), rng);
     for (int i = 0; i < n; ++i) {
+        if (i % 10000 == 0) {
+            logger << "Processing " << i << " / " << graph.size() << std::endl;
+        }
         auto res = track_search(oracle, graph, oracle[permutation[i]], root, L_);
         RobustPrune(graph, oracle, 1.0f, permutation[i], res);
         for (auto &j: graph[permutation[i]].candidates_) {
@@ -114,12 +88,16 @@ Graph Vamana<DATA_TYPE>::build(IndexOracle<DATA_TYPE> &oracle) {
             }
         }
     }
+
+    timer.end();
+    logger << "Construction time: " << timer.elapsed() << "s" << std::endl;
+
     return graph;
 }
 
-template<class DATA_TYPE>
-void Vamana<DATA_TYPE>::RobustPrune(Graph &graph,
-                                    IndexOracle<DATA_TYPE> &oracle,
+
+void diskann::Vamana::RobustPrune(Graph &graph,
+                                    IndexOracle &oracle,
                                     float alpha,
                                     int point,
                                     std::vector<Neighbor> &candidates) {
@@ -143,6 +121,3 @@ void Vamana<DATA_TYPE>::RobustPrune(Graph &graph,
                          candidates.end());
     }
 }
-}
-
-#endif //MERGE_VAMANA_H

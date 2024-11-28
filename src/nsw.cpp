@@ -1,67 +1,31 @@
-//
-// Created by XiaoWu on 2024/11/23.
-//
-
-#ifndef MERGE_NSW_H
-#define MERGE_NSW_H
-
-#include <random>
-#include <omp.h>
-#include "graph.h"
-#include "dtype.h"
-#include "metric.h"
+#include "include/nsw.h"
 
 using namespace merge;
 
-namespace nsw {
-template<class DATA_TYPE>
-class NSW {
-private:
-    int max_neighbors_;
+Graph nsw::NSW::build(IndexOracle &oracle) {
+    Timer timer;
+    timer.start();
 
-    int ef_construction_;
-
-    void addPoint(Graph &graph,
-                  IndexOracle<DATA_TYPE> &oracle,
-                  unsigned index);
-
-    std::vector<Neighbor> multisearch(const Graph &graph,
-                                      const IndexOracle<DATA_TYPE> &oracle,
-                                      unsigned query,
-                                      int attempts,
-                                      int k);
-
-public:
-    NSW(int max_neighbors,
-        int ef_construction) : max_neighbors_(max_neighbors),
-                               ef_construction_(ef_construction) {}
-
-    void set_max_neighbors(int max_neighbors) {
-        this->max_neighbors_ = max_neighbors;
-    }
-
-    void set_ef_construction(int ef_construction) {
-        this->ef_construction_ = ef_construction;
-    }
-
-    Graph build(IndexOracle<DATA_TYPE> &oracle);
-};
-
-template<class DATA_TYPE>
-Graph NSW<DATA_TYPE>::build(IndexOracle<DATA_TYPE> &oracle) {
     Graph graph;
     int total = oracle.size();
     graph.emplace_back(max_neighbors_);
+
     for (int i = 1; i < total; ++i) {
+        if (i % 10000 == 0) {
+            logger << "Processing " << i << " / " << graph.size() << std::endl;
+        }
         addPoint(graph, oracle, i);
     }
+
+    timer.end();
+    logger << "Construction time: " << timer.elapsed() << "s" << std::endl;
 
     return graph;
 }
 
-template<class DATA_TYPE>
-void NSW<DATA_TYPE>::addPoint(Graph &graph,
-                              IndexOracle<DATA_TYPE> &oracle,
+
+void nsw::NSW::addPoint(Graph &graph,
+                              IndexOracle &oracle,
                               unsigned int index) {
     auto res = knn_search(oracle, graph, oracle[index], max_neighbors_, ef_construction_, -1, index);
     graph.emplace_back(max_neighbors_);
@@ -74,9 +38,9 @@ void NSW<DATA_TYPE>::addPoint(Graph &graph,
     }
 }
 
-template<class DATA_TYPE>
-std::vector<Neighbor> NSW<DATA_TYPE>::multisearch(const Graph &graph,
-                                                  const IndexOracle<DATA_TYPE> &oracle,
+
+std::vector<Neighbor> nsw::NSW::multisearch(const Graph &graph,
+                                                  const IndexOracle &oracle,
                                                   unsigned int query,
                                                   int attempts,
                                                   int k) {
@@ -92,7 +56,7 @@ std::vector<Neighbor> NSW<DATA_TYPE>::multisearch(const Graph &graph,
             entry_point = rng() % graph.size();
         }
         auto dist = oracle(query, entry_point);
-        candidates.push(Neighbor(entry_point, dist, false));
+        candidates.emplace(entry_point, dist, false);
         while (!candidates.empty()) {
             auto &c = candidates.top();
             candidates.pop();
@@ -120,6 +84,3 @@ std::vector<Neighbor> NSW<DATA_TYPE>::multisearch(const Graph &graph,
     results.resize(k);
     return results;
 }
-}
-
-#endif //MERGE_NSW_H

@@ -1,78 +1,18 @@
-//
-// Created by XiaoWu on 2024/11/23.
-//
-
-#ifndef MERGE_NNDESCENT_H
-#define MERGE_NNDESCENT_H
-
-#include <random>
-#include <omp.h>
-#include "graph.h"
-#include "dtype.h"
-#include "metric.h"
+#include "include/nndescent.h"
 
 using namespace merge;
 
-namespace nndescent {
+Graph nndescent::NNDescent::build(IndexOracle &oracle) {
+    Timer timer;
+    timer.start();
 
-struct NNDescentParams {
-    unsigned K{64};
-
-    float rho{0.5};
-
-    float delta{0.001};
-
-    unsigned iteration{100};
-
-    friend std::ostream &operator<<(std::ostream &os,
-                                    const NNDescentParams &params) {
-        os << "M0: " << params.K << ", rho: " << params.rho << ", delta: " << params.delta
-           << ", iteration: " << params.iteration;
-        return os;
-    }
-};
-
-template<class DATA_TYPE>
-class NNDescent {
-private:
-    unsigned K{64};
-
-    float rho{0.5};
-
-    float delta{0.001};
-
-    unsigned iteration{100};
-
-    void initializeGraph(Graph &graph,
-                         IndexOracle<DATA_TYPE> &oracle);
-
-    void generateUpdate(Graph &graph);
-
-    int applyUpdate(unsigned sample,
-                    Graph &graph,
-                    IndexOracle<DATA_TYPE> &oracle);
-
-    void clearGraph(Graph &graph);
-
-public:
-    NNDescent() = default;
-
-    explicit NNDescent(int K, float rho, float delta, int iteration)
-            : K(K), rho(rho), delta(delta), iteration(iteration) {}
-
-    ~NNDescent() = default;
-
-    Graph build(IndexOracle<DATA_TYPE> &oracle);
-};
-
-template<class DATA_TYPE>
-Graph NNDescent<DATA_TYPE>::build(IndexOracle<DATA_TYPE> &oracle) {
     int sample = static_cast<int>(static_cast<float>(K) * rho);
     Graph graph;
     initializeGraph(graph, oracle);
     for (size_t it = 0; it < iteration; ++it) {
         generateUpdate(graph);
         int cnt = applyUpdate(sample, graph, oracle);
+        logger << "Iteration " << it << " update " << cnt << " edges" << std::endl;
         if (cnt <= delta * oracle.size() * K) {
             break;
         }
@@ -82,12 +22,15 @@ Graph NNDescent<DATA_TYPE>::build(IndexOracle<DATA_TYPE> &oracle) {
     for (auto &u: graph) {
         std::sort(u.candidates_.begin(), u.candidates_.end());
     }
+
+    timer.end();
+    logger << "Construction time: " << timer.elapsed() << "s" << std::endl;
+
     return graph;
 }
 
-template<class DATA_TYPE>
-void NNDescent<DATA_TYPE>::initializeGraph(Graph &graph,
-                                           IndexOracle<DATA_TYPE> &oracle) {
+void nndescent::NNDescent::initializeGraph(Graph &graph,
+                                           IndexOracle &oracle) {
     int total = oracle.size();
     graph.resize(total);
 #pragma omp parallel
@@ -108,11 +51,11 @@ void NNDescent<DATA_TYPE>::initializeGraph(Graph &graph,
             }
             std::make_heap(graph[i].candidates_.begin(), graph[i].candidates_.end());
         }
-    };
+    }
 }
 
-template<class DATA_TYPE>
-void NNDescent<DATA_TYPE>::generateUpdate(Graph &graph) {
+
+void nndescent::NNDescent::generateUpdate(Graph &graph) {
 #pragma omp parallel
     {
         std::mt19937 rng(2024 + omp_get_thread_num());
@@ -142,15 +85,15 @@ void NNDescent<DATA_TYPE>::generateUpdate(Graph &graph) {
     }
 }
 
-template<class DATA_TYPE>
-int NNDescent<DATA_TYPE>::applyUpdate(unsigned sample,
+
+int nndescent::NNDescent::applyUpdate(unsigned sample,
                                       Graph &graph,
-                                      IndexOracle<DATA_TYPE> &oracle) {
+                                      IndexOracle &oracle) {
     int cnt = 0;
 #pragma omp parallel
     {
         std::mt19937 rng(2024 + omp_get_thread_num());
-#pragma omp for reduction(+:cnt) schedule(dynamic)
+#pragma omp for reduction(+:cnt) schedule(dynamic, 256)
         for (auto &v: graph) {
             auto &_old = v.old_;
             auto &_new = v.new_;
@@ -195,12 +138,12 @@ int NNDescent<DATA_TYPE>::applyUpdate(unsigned sample,
                 }
             }
         }
-    };
+    }
     return cnt;
 }
 
-template<class DATA_TYPE>
-void NNDescent<DATA_TYPE>::clearGraph(Graph &graph) {
+
+void nndescent::NNDescent::clearGraph(Graph &graph) {
 #pragma omp parallel for
     for (auto &v: graph) {
         v.old_.clear();
@@ -209,6 +152,3 @@ void NNDescent<DATA_TYPE>::clearGraph(Graph &graph) {
         v.reverse_new_.clear();
     }
 }
-}
-
-#endif //MERGE_NNDESCENT_H
