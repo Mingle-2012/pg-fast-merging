@@ -32,7 +32,7 @@ Compile On Ubuntu 22.04:
 ```bash
 $ sudo apt-get install g++ cmake libomp-dev
 $ git clone https://github.com/Mingle-2012/pg-fast-merging.git
-$ cd Merge
+$ cd pg-fast-merging
 $ mkdir build && cd build
 $ cmake ..
 $ make -j
