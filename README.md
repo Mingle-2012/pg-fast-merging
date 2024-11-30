@@ -99,7 +99,7 @@ Implement other refinement approaches in the `merge.cpp` file.
 
 [NNDescent](https://dl.acm.org/doi/abs/10.1145/1963405.1963487)
 
-[$\tau$-MNG](https://dl.acm.org/doi/abs/10.1145/3588908)
+[Tau-MNG](https://dl.acm.org/doi/abs/10.1145/3588908)
 
 [DiskANN](https://github.com/microsoft/DiskANN)
 
