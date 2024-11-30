@@ -27,7 +27,15 @@ This repository contains the source code for the paper "Fast Graph-based Indexes
 
 ### Run the code
 
-Compile On Ubuntu 22.04:
+Change the dataset path and the metric in the `tests/test_index_construct.cpp` and `tests/test_merging_implemented_algorithms.cpp` files if you want to use your own dataset.
+
+If you don't have the dataset, you can download the SIFT1M dataset with the following command:
+
+```bash
+python3 dataset.py
+```
+
+Then, compile on Ubuntu 22.04:
 
 ```bash
 $ sudo apt-get install g++ cmake libomp-dev
@@ -36,14 +44,6 @@ $ cd pg-fast-merging
 $ mkdir build && cd build
 $ cmake ..
 $ make -j
-```
-
-Change the dataset path and the metric in the `tests/test_index_construct.cpp` and `tests/test_merging_implemented_algorithms.cpp` files if you want to use your own dataset.
-
-If you don't have the dataset, you can download the SIFT1M dataset with the following command:
-
-```bash
-python3 dataset.py
 ```
 
 We provide three test files:
@@ -55,6 +55,7 @@ We provide three test files:
 Here are the examples of running the test files:
 
 ```bash
+cd tests
 $ ./test_index_construction <algorithm>
 $ ./test_merging_implemented_algorithms <M0> <L> <M>
 $ ./test_merging_graphs <graph 1> <dataset 1> <graph 2> <dataset 2> <metric> <output>
