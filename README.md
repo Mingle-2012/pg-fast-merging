@@ -61,6 +61,16 @@ $ ./test_merging_implemented_algorithms <M0> <L> <M>
 $ ./test_merging_graphs <graph 1> <dataset 1> <graph 2> <dataset 2> <metric> <output>
 ```
 
+> The graph structure is formatted as follows:
+> 
+> [number of vertices]
+> 
+> [number of neighbors of vertex 1] [neighbor 1] [distance 1] [neighbor 2] [distance 2] ...
+> 
+> [number of neighbors of vertex 2] [neighbor 1] [distance 1] [neighbor 2] [distance 2] ...
+> 
+> ...
+
 ### Parameters
 
 Merging parameters:
