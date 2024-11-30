@@ -19,13 +19,13 @@ namespace nndescent {
 
 class NNDescent {
     private:
-        unsigned K{64};
+        unsigned K_{64};
 
-        float rho{0.5};
+        float rho_{0.5};
 
-        float delta{0.001};
+        float delta_{0.001};
 
-        unsigned iteration{100};
+        unsigned iteration_{100};
 
         void initializeGraph(Graph &graph,
                              IndexOracle &oracle);
@@ -42,7 +42,7 @@ class NNDescent {
         NNDescent() = default;
 
         explicit NNDescent(int K, float rho=0.5, float delta=0.001, int iteration=20)
-                : K(K), rho(rho), delta(delta), iteration(iteration) {}
+                : K_(K), rho_(rho), delta_(delta), iteration_(iteration) {}
 
         ~NNDescent() = default;
 

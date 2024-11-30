@@ -1,4 +1,4 @@
-#include "include/vamana.h"
+#include "vamana.h"
 
 using namespace merge;
 

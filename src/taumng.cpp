@@ -1,11 +1,11 @@
-#include "include/taumng.h"
+#include "taumng.h"
 
 using namespace merge;
 
 
 taumng::TauMNG::TauMNG(float t,
-                          int h,
-                          int b) {
+                       int h,
+                       int b) {
     t_ = t;
     h_ = h;
     b_ = b;

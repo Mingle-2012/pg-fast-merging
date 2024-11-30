@@ -39,7 +39,7 @@ namespace merge {
 
         Merge() = default;
 
-        explicit Merge(unsigned M0, unsigned M, unsigned L) : M0_(M0), M_(M), L_(L) {}
+        explicit Merge(unsigned M0, unsigned M, unsigned L);
 
         ~Merge() = default;
 

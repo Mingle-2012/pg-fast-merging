@@ -1,4 +1,4 @@
-#include "include/graph.h"
+#include "graph.h"
 
 using namespace merge;
 
@@ -385,6 +385,5 @@ void merge::loadGraph(Graph &graph,
         }
         graph.push_back(neighborhood);
     }
-
     file.close();
 }

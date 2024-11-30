@@ -1,4 +1,4 @@
-#include "include/nndescent.h"
+#include "nndescent.h"
 
 using namespace merge;
 
@@ -6,14 +6,14 @@ Graph nndescent::NNDescent::build(IndexOracle &oracle) {
     Timer timer;
     timer.start();
 
-    int sample = static_cast<int>(static_cast<float>(K) * rho);
+    int sample = static_cast<int>(static_cast<float>(K_) * rho_);
     Graph graph;
     initializeGraph(graph, oracle);
-    for (size_t it = 0; it < iteration; ++it) {
+    for (size_t it = 0; it < iteration_; ++it) {
         generateUpdate(graph);
         int cnt = applyUpdate(sample, graph, oracle);
         logger << "Iteration " << it << " update " << cnt << " edges" << std::endl;
-        if (cnt <= delta * oracle.size() * K) {
+        if (cnt <= delta_ * oracle.size() * K_) {
             break;
         }
         clearGraph(graph);
@@ -38,11 +38,11 @@ void nndescent::NNDescent::initializeGraph(Graph &graph,
         std::mt19937 rng(2024 + omp_get_thread_num());
 #pragma omp for
         for (size_t i = 0; i < total; ++i) {
-            graph[i].candidates_.reserve(K);
-            std::vector<int> indices(K);
+            graph[i].candidates_.reserve(K_);
+            std::vector<int> indices(K_);
 
-            gen_random(rng, indices.data(), K, total);
-            for (int j = 0; j < K; ++j) {
+            gen_random(rng, indices.data(), K_, total);
+            for (int j = 0; j < K_; ++j) {
                 if (indices[j] == i) {
                     continue;
                 }

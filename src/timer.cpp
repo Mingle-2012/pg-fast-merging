@@ -1,4 +1,4 @@
-#include "include/timer.h"
+#include "timer.h"
 
 using namespace merge;
 

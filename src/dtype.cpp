@@ -1,4 +1,5 @@
-#include "include/dtype.h"
+#include "dtype.h"
+#include "logger.h"
 
 using namespace merge;
 
@@ -86,14 +87,18 @@ void Matrix::zero() {
 void Matrix::load(const std::string &path,
                         unsigned int skip,
                         unsigned int gap) {
+    logger << "Loading data from " << path << std::endl;
     std::ifstream is(path.c_str(), std::ios::binary);
+    if (!is) {
+        throw std::runtime_error("Cannot open file " + path);
+    }
     is.seekg(0, std::ios::end);
     size_t size = is.tellg();
     size -= skip;
     is.seekg(0, std::ios::beg);
     unsigned dim;
     is.read((char *) &dim, sizeof(unsigned int));
-    std::cout << "Read Dimension: " << dim << std::endl;
+    logger << "Vector dimension: " << dim << std::endl;
     unsigned line = sizeof(float) * dim + gap;
     unsigned N = size / line;
     reset(N, dim);

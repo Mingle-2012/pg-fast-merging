@@ -1,4 +1,4 @@
-#include "include/nsw.h"
+#include "nsw.h"
 
 using namespace merge;
 

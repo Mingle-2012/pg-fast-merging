@@ -1,3 +1,3 @@
-#include "include/metric.h"
+#include "metric.h"
 
 using namespace merge::metric;

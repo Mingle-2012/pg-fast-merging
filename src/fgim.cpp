@@ -1,7 +1,23 @@
-#include "include/merge.h"
+#include "include/fgim.h"
 
 using namespace merge;
 
+Merge::Merge(unsigned int M0,
+             unsigned int M,
+             unsigned int L) {
+    if (M0 < 1) {
+        throw std::invalid_argument("M0 must be greater than 0");
+    }
+    if (M < 1) {
+        throw std::invalid_argument("M must be greater than 0");
+    }
+    if (L < 1) {
+        throw std::invalid_argument("L must be greater than 0");
+    }
+    M0_ = M0;
+    M_ = M;
+    L_ = L;
+}
 
 Graph Merge::merge(const Graph &g1,
                               IndexOracle &oracle1,
