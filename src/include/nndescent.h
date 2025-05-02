@@ -5,49 +5,44 @@
 #ifndef MERGE_NNDESCENT_H
 #define MERGE_NNDESCENT_H
 
-#include <random>
 #include <omp.h>
-#include "graph.h"
-#include "dtype.h"
-#include "metric.h"
-#include "logger.h"
-#include "timer.h"
 
-using namespace merge;
+#include <random>
+
+#include "index.h"
 
 namespace nndescent {
 
-class NNDescent {
-    private:
-        unsigned K_{64};
+class NNDescent : public Index {
+protected:
+    unsigned K_{64};
 
-        float rho_{0.5};
+    float rho_{0.5};
 
-        float delta_{0.001};
+    float delta_{0.001};
 
-        unsigned iteration_{100};
+    unsigned iteration_{100};
 
-        void initializeGraph(Graph &graph,
-                             IndexOracle &oracle);
+    void
+    initializeGraph();
 
-        void generateUpdate(Graph &graph);
+    void
+    generateUpdate();
 
-        int applyUpdate(unsigned sample,
-                        Graph &graph,
-                        IndexOracle &oracle);
+    virtual int
+    applyUpdate(unsigned sample);
 
-        void clearGraph(Graph &graph);
+    void
+    clearGraph();
 
-    public:
-        NNDescent() = default;
+    void
+    build_internal() override;
 
-        explicit NNDescent(int K, float rho=0.5, float delta=0.001, int iteration=20)
-                : K_(K), rho_(rho), delta_(delta), iteration_(iteration) {}
+public:
+    NNDescent(DatasetPtr& dataset, int K, float rho = 0.5, float delta = 0.001, int iteration = 20);
 
-        ~NNDescent() = default;
+    ~NNDescent() override = default;
+};
+}  // namespace nndescent
 
-        Graph build(IndexOracle &oracle);
-    };
-}
-
-#endif //MERGE_NNDESCENT_H
+#endif  // MERGE_NNDESCENT_H

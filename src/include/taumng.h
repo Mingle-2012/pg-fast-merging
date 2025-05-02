@@ -5,48 +5,53 @@
 #ifndef MERGE_TAUMNG_H
 #define MERGE_TAUMNG_H
 
-#include <random>
 #include <omp.h>
-#include "graph.h"
-#include "dtype.h"
-#include "metric.h"
-#include "logger.h"
-#include "timer.h"
 
-using namespace merge;
+#include <random>
+
+#include "index.h"
 
 namespace taumng {
 
-class TauMNG {
-    private:
-        /**
-         * tau
-         */
-        float t_;
+class TauMNG : public Index {
+private:
+    /**
+   * tau
+   */
+    float t_;
 
-        /**
-         * same as k in knn search
-         */
-        int h_;
+    /**
+   * same as k in knn HNSW_search
+   */
+    int h_;
 
-        /**
-         * search pool size
-         */
-        int b_;
+    /**
+   * search pool size
+   */
+    int b_;
 
-    public:
-        TauMNG(float t,
-               int h,
-               int b);
+    Graph& base_;
 
-        void set_b(int b);
+    void
+    build_internal() override;
 
-        void set_h(int h);
+public:
+    /**
+   * @brief Build a TauMNG graph.
+   * @param oracle
+   * @param graph
+   * @param t
+   * @param h
+   * @param b
+   */
+    TauMNG(DatasetPtr& dataset, Graph& base, float t, int h, int b);
 
-        void build(Graph &graph,
-                   IndexOracle &oracle);
+    void
+    set_b(int b);
 
-    };
-}
+    void
+    set_h(int h);
+};
+}  // namespace taumng
 
-#endif //MERGE_TAUMNG_H
+#endif  // MERGE_TAUMNG_H

@@ -1,3 +1,3 @@
 #include "metric.h"
 
-using namespace merge::metric;
+using namespace graph::metric;

@@ -5,54 +5,83 @@
 #ifndef MERGE_VAMANA_H
 #define MERGE_VAMANA_H
 
-#include <random>
 #include <omp.h>
-#include "graph.h"
-#include "dtype.h"
-#include "metric.h"
-#include "logger.h"
-#include "timer.h"
 
-using namespace merge;
+#include <random>
+
+#include "index.h"
+#include "kmeans.h"
 
 namespace diskann {
-class Vamana {
-    private:
-        /**
-         * alpha
-         */
-        float alpha_;
+class Vamana : public Index {
+private:
+    /**
+   * alpha
+   */
+    float alpha_;
 
-        /*
-         * search pool size
-         */
-        int L_;
+    /*
+   * search pool size
+   */
+    int L_;
 
-        /**
-         * maximum number of neighbors
-         */
-        int R_;
+    /**
+   * maximum number of neighbors
+   */
+    int R_;
 
-        void RobustPrune(Graph &graph,
-                         IndexOracle &oracle,
-                         float alpha,
-                         int point,
-                         std::vector<Neighbor> &candidates);
+    void
+    RobustPrune(float alpha, int point, Neighbors& candidates);
 
-    public:
-        Vamana(float alpha,
-               int L,
-               int R);
+    void
+    build_internal() override;
 
-        void set_alpha(float alpha);
+public:
+    /**
+   *
+   * @param dataset
+   * @param alpha
+   * @param L
+   * @param R
+   */
+    Vamana(DatasetPtr& dataset, float alpha, int L, int R);
 
-        void set_L(int L);
+    ~Vamana() override = default;
 
-        void set_R(int R);
+    void
+    set_alpha(float alpha);
 
-        Graph build(IndexOracle &oracle);
-    };
+    void
+    set_L(int L);
 
-}
+    void
+    set_R(int R);
 
-#endif //MERGE_VAMANA_H
+    void
+    partial_build(std::vector<uint32_t>& permutation);
+};
+
+class DiskANN : public Index {
+private:
+    float alpha_;
+
+    int L_;
+
+    int R_;
+
+    int k_;
+
+    int ell_;
+
+    void
+    build_internal() override;
+
+public:
+    DiskANN(DatasetPtr& dataset, float alpha, int L, int R, int k, int ell);
+
+    ~DiskANN() override = default;
+};
+
+}  // namespace diskann
+
+#endif  // MERGE_VAMANA_H

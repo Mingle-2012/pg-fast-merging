@@ -11,7 +11,7 @@ else()
     message(FATAL_ERROR "Please install OpenMP")
 endif()
 
-SET(CMAKE_CXX_FLAGS "-fpic -w -DHAVE_CXX0X -fopenmp -ftree-vectorize -ftree-vectorizer-verbose=0 -lrt -DNDEBUG -march=native -Ofast")
+SET(CMAKE_CXX_FLAGS "-DNDEBUG -march=native -fpic -DHAVE_CXX0X -fopenmp -ftree-vectorize -Ofast -march=native -msse4.2 -mavx2 -mfma")
 
 include_directories(src)
 

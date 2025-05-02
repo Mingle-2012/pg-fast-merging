@@ -1,92 +1,82 @@
-#include "nndescent.h"
-#include "vamana.h"
-#include "taumng.h"
-#include "nsw.h"
-#include "utils.h"
+#include "annslib.h"
 
-void test_nndescent(IndexOracle &oracle,
-                    const Matrix &query,
-                    const std::vector<std::vector<unsigned int>> &groundTruth,
-                    unsigned int K) {
-    nndescent::NNDescent nndescent(20);
-
-    auto graph = nndescent.build(oracle);
-
-    evaluate(graph, K, query, groundTruth, oracle);
+void
+test_hnsw(DatasetPtr& dataset, int M, int ef_construction, int K = 10) {
+    auto index = std::make_shared<hnsw::HNSW>(dataset, M, ef_construction);
+    index->build();
+    recall(index, dataset, -1, K);
 }
 
-void test_vamana(IndexOracle &oracle,
-                 const Matrix &query,
-                 const std::vector<std::vector<unsigned int>> &groundTruth,
-                 unsigned int K) {
-    diskann::Vamana vamana(1.2, 100, 80);
-
-    auto graph = vamana.build(oracle);
-
-    evaluate(graph, K, query, groundTruth, oracle);
+void
+test_vamana(DatasetPtr& dataset, float alpha, int L, int R, int K = 10) {
+    auto index = std::make_shared<diskann::Vamana>(dataset, alpha, L, R);
+    index->build();
+    recall(index, dataset, -1, K);
 }
 
-void test_taumng(IndexOracle &oracle,
-                 const Matrix &query,
-                 const std::vector<std::vector<unsigned int>> &groundTruth,
-                 unsigned int K) {
-    nndescent::NNDescent nndescent(20);
-
-    auto graph = nndescent.build(oracle);
-
-    taumng::TauMNG taumng(10, 80, 100);
-
-    taumng.build(graph, oracle);
-
-    evaluate(graph, K, query, groundTruth, oracle);
-}
-
-void test_nsw(IndexOracle &oracle,
-              const Matrix &query,
-              const std::vector<std::vector<unsigned int>> &groundTruth,
-              unsigned int K) {
-    nsw::NSW nsw(32, 100);
-
-    auto graph = nsw.build(oracle);
-
-    evaluate(graph, K, query, groundTruth, oracle);
-}
-
-int main(int argc, char **argv) {
+int
+main(int argc, char** argv) {
     // set verbose to true if you want to see more information
     Log::setVerbose(false);
 
-    if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <algorithm>" << std::endl;
-        std::cerr << "Algorithm: nndescent, vamana, taumng, nsw" << std::endl;
+    if (argc < 7) {
+        std::cerr << "Usage: " << argv[0]
+                  << " <base path> <metric> <query path> <groundtruth path> <topk> "
+                     "<algorithm> <algorithm parameters>"
+                  << std::endl;
+        std::cerr << "Algorithm: HNSW, Vamana" << std::endl;
+        std::cerr << "HNSW: M, ef_construction" << std::endl;
+        std::cerr << "Vamana: alpha, L, R" << std::endl;
         return 1;
     }
-    // Recall@K
-    int K = 10;
 
-    // Change the path to your dataset
-    std::string base_path = "../../datasets/sift/sift_base.fvecs";
-    std::string query_path = "../../datasets/sift/sift_query.fvecs";
-    std::string groundtruth_path = "../../datasets/sift/sift_groundtruth.ivecs";
-
-    // Load the dataset and groundtruth
-    Matrix base;
-    base.load(base_path);
-    Matrix query;
-    query.load(query_path);
-    MatrixOracle<metric::l2> oracle(base);
-    auto groundTruth = loadGroundTruth(groundtruth_path, query.size());
-
-    if (std::string(argv[1]) == "nndescent") {
-        test_nndescent(oracle, query, groundTruth, K);
-    } else if (std::string(argv[1]) == "vamana") {
-        test_vamana(oracle, query, groundTruth, K);
-    } else if (std::string(argv[1]) == "taumng") {
-        test_taumng(oracle, query, groundTruth, K);
-    } else if (std::string(argv[1]) == "nsw") {
-        test_nsw(oracle, query, groundTruth, K);
+    std::string base_path = argv[1];
+    std::string query_path = argv[2];
+    std::string groundtruth_path = argv[3];
+    std::string metric = argv[4];
+    DISTANCE distance;
+    if (metric == "l2") {
+        distance = DISTANCE::L2;
+    } else if (metric == "angular") {
+        distance = DISTANCE::COSINE;
+    } else if (metric == "jaccard") {
+        distance = DISTANCE::JACCARD;
+    } else if (metric == "hamming") {
+        distance = DISTANCE::HAMMING;
     } else {
-        std::cerr << "Unimplemented algorithm: " << argv[1] << std::endl;
+        std::cerr << "Unknown metric: " << metric << std::endl;
+        return 1;
+    }
+
+    auto dataset = Dataset::getInstance(base_path, query_path, groundtruth_path, distance);
+
+    int K = std::stoi(argv[5]);
+
+    std::string algorithm = argv[6];
+    std::transform(algorithm.begin(), algorithm.end(), algorithm.begin(), ::tolower);
+
+    if (algorithm == "hnsw") {
+        if (argc < 9) {
+            std::cerr << "Usage: HNSW <M> <ef_construction>" << std::endl;
+            return 1;
+        }
+        int M = std::stoi(argv[7]);
+        int ef_construction = std::stoi(argv[8]);
+        test_hnsw(dataset, M, ef_construction, K);
+    } else if (algorithm == "vamana") {
+        if (argc < 10) {
+            std::cerr << "Usage: Vamana <alpha> <L> <R>" << std::endl;
+            return 1;
+        }
+        float alpha = std::stof(argv[7]);
+        int L = std::stoi(argv[8]);
+        int R = std::stoi(argv[9]);
+        test_vamana(dataset, alpha, L, R, K);
+    } else {
+        std::cerr << "Unimplemented algorithm: " << algorithm << std::endl;
+        std::cerr << "TauMNG, NSW, NNDescent are provided in the source code, "
+                     "please modify the code to test them"
+                  << std::endl;
         return 1;
     }
 

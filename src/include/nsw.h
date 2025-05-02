@@ -5,48 +5,47 @@
 #ifndef MERGE_NSW_H
 #define MERGE_NSW_H
 
-#include <random>
 #include <omp.h>
-#include "graph.h"
-#include "dtype.h"
-#include "metric.h"
-#include "logger.h"
-#include "timer.h"
 
-using namespace merge;
+#include <random>
+
+#include "index.h"
 
 namespace nsw {
-class NSW {
-    private:
-        int max_neighbors_;
+class NSW : public Index {
+private:
+    int max_neighbors_;
 
-        int ef_construction_;
+    int ef_construction_;
 
-        void addPoint(Graph &graph,
-                      IndexOracle &oracle,
-                      unsigned index);
+    void
+    addPoint(unsigned index);
 
-        std::vector<Neighbor> multisearch(const Graph &graph,
-                                          const IndexOracle &oracle,
-                                          unsigned query,
-                                          int attempts,
-                                          int k);
+    Neighbors
+    multisearch(
+        const Graph& graph, const IndexOracle<float>& oracle, unsigned query, int attempts, int k);
 
-    public:
-        NSW(int max_neighbors,
-            int ef_construction) : max_neighbors_(max_neighbors),
-                                   ef_construction_(ef_construction) {}
+    void
+    build_internal() override;
 
-        void set_max_neighbors(int max_neighbors) {
-            this->max_neighbors_ = max_neighbors;
-        }
+public:
+    NSW(DatasetPtr& dataset, int max_neighbors, int ef_construction);
 
-        void set_ef_construction(int ef_construction) {
-            this->ef_construction_ = ef_construction;
-        }
+    void
+    add(graph::DatasetPtr& dataset) override;
 
-        Graph build(IndexOracle &oracle);
-    };
-}
+    ~NSW() override = default;
 
-#endif //MERGE_NSW_H
+    void
+    set_max_neighbors(int max_neighbors) {
+        this->max_neighbors_ = max_neighbors;
+    }
+
+    void
+    set_ef_construction(int ef_construction) {
+        this->ef_construction_ = ef_construction;
+    }
+};
+}  // namespace nsw
+
+#endif  // MERGE_NSW_H

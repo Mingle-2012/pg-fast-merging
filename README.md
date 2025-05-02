@@ -9,13 +9,11 @@
   - [Extensibility](#extensibility)
 - [Performance](#performance)
   - [Datasets](#datasets)
-  - [Compared methods](#compared-methods)
-  - [Results](#results)
 - [License](#license)
 
 ## Introduction
 
-This repository contains the source code for the paper "Fast Graph-based Indexes Merging for Approximate Nearest Neighbor Search". In the paper, we propose a framework for merging multiple indexes into a single index that can be used for ANNS.
+This repository contains the source code for the paper "Fast Graph-based Indexes Merging for Approximate Nearest Neighbor Search". In the paper, we propose a framework for merging multiple indexes into a single index that can be used for effective ANNS.
 
 ## Usage
 
@@ -48,26 +46,26 @@ $ make -j
 
 We provide three test files:
 
-- `test_index_construction.cpp` - test the construction of NNDescent, Vamana, $\tau$-MNG, and NSW indexes.
-- `test_merging_implemented_algorithms.cpp` - test the merging of the above indexes. (2 sub-graphs)
-- `test_merging_graphs.cpp` - test the merging of given graphs. (2 sub-graphs)
+- `test_index_construction.cpp` - test the construction of HNSW and Vamana indexes.
+- `test_merge_from_raw.cpp` - test the merging of the mainstream graph-based indexes. (2 sub-graphs)
+- `test_merge_two_pg_indexes.cpp` - test the merging of given graphs. (2 sub-graphs)
 
 Here are the examples of running the test files:
 
 ```bash
 cd tests
-$ ./test_index_construction <algorithm>
-$ ./test_merging_implemented_algorithms <M0> <L> <M>
-$ ./test_merging_graphs <graph 1> <dataset 1> <graph 2> <dataset 2> <metric> <output>
+$ ./test_index_construction  <base path> <metric> <query path> <groundtruth path> <topk> <algorithm> <algorithm parameters>
+$ ./test_merge_from_raw <base path> <metric> <query path> <groundtruth path> <M>
+$ ./test_merge_two_pg_indexes <graph 1> <base path 1> <graph 2> <bath path 2> <M> <metric> <output>
 ```
 
 > The graph structure is formatted as follows:
 > 
 > [number of vertices]
 > 
-> [number of neighbors of vertex 1] [neighbor 1] [distance 1] [neighbor 2] [distance 2] ...
+> [number of neighbors of vertex 1] [neighbor 1] [neighbor 2]...
 > 
-> [number of neighbors of vertex 2] [neighbor 1] [distance 1] [neighbor 2] [distance 2] ...
+> [number of neighbors of vertex 2] [neighbor 1] [neighbor 2]...
 > 
 > ...
 
@@ -75,9 +73,7 @@ $ ./test_merging_graphs <graph 1> <dataset 1> <graph 2> <dataset 2> <metric> <ou
 
 Merging parameters:
 
-- `M0` - the initial out-degree of the merged index.
-- `L` - the search pool size, which controls the quality of the search results, the larger the better but slower
-- `M` - the final out-degree of the merged index.
+- `M` - maximum number of neighbors for each vertex.
 
 Search parameters:
 
@@ -86,7 +82,7 @@ Search parameters:
 
 ### Extensibility
 
-Implement other refinement approaches in the `merge.cpp` file.
+Other pruning algorithms can be added to the `src/fgim.cpp` or `src/mgraph.cpp` files.
 
 ## Performance
 
@@ -105,22 +101,6 @@ Implement other refinement approaches in the `merge.cpp` file.
 - Thanks to [Yusuke Matsui](https://github.com/matsui528), you can download the DEEP1M dataset from his [repository](https://github.com/matsui528/deep1b_gt).
 - For the MSong dataset, you can download it from the [CUHK-GQR](https://www.cse.cuhk.edu.hk/systems/hash/gqr/datasets.html)
 - Thanks to the authors of [SSG](https://github.com/ZJULearning/SSG), you can download the Crawl, GloVe datasets from their repository.
-
-### Compared methods
-
-[NNDescent](https://dl.acm.org/doi/abs/10.1145/1963405.1963487)
-
-[Tau-MNG](https://dl.acm.org/doi/abs/10.1145/3588908)
-
-[DiskANN](https://github.com/microsoft/DiskANN)
-
-[NSW](https://github.com/nmslib/nmslib)
-
-### Results
-
-In the experiments, we constructed two indexes in advance. FGIM significantly reduced time consumption compared to reconstructing a new index from scratch.
-
-![img.png](image/results.png)
 
 ## License
 

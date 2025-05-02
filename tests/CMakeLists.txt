@@ -1,8 +1,7 @@
-add_executable(test_merging_implemented_algorithms test_merging_implemented_algorithms.cpp)
-target_link_libraries(test_merging_implemented_algorithms ${PROJECT_NAME})
+file(GLOB TESTS_TEST_SOURCES "${CMAKE_SOURCE_DIR}/tests/test_*.cpp")
 
-add_executable(test_merging_graphs test_merging_graphs.cpp)
-target_link_libraries(test_merging_graphs ${PROJECT_NAME})
-
-add_executable(test_index_construction test_index_construction.cpp)
-target_link_libraries(test_index_construction ${PROJECT_NAME})
+foreach (TEST_SRC ${TESTS_TEST_SOURCES})
+    get_filename_component(TEST_NAME ${TEST_SRC} NAME_WE)
+    add_executable(${TEST_NAME} ${TEST_SRC})
+    target_link_libraries(${TEST_NAME} ${PROJECT_NAME})
+endforeach ()
