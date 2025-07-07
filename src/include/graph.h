@@ -8,8 +8,8 @@
  * https://github.com/JieFengWang/mini_rnn for more details.
  */
 
-#ifndef MYANNS_GRAPH_H
-#define MYANNS_GRAPH_H
+#ifndef MERGE_GRAPH_H
+#define MERGE_GRAPH_H
 
 #include <algorithm>
 #include <bitset>
@@ -270,4 +270,4 @@ void
 loadHGraph(HGraph& hgraph, const std::string& index_path, const OraclePtr& oracle = nullptr);
 }  // namespace graph
 
-#endif  // MYANNS_GRAPH_H
+#endif  // MERGE_GRAPH_H

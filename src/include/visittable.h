@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2025/3/1.
 //
 
-#ifndef MYANNS_VISITTABLE_H
-#define MYANNS_VISITTABLE_H
+#ifndef MERGE_VISITTABLE_H
+#define MERGE_VISITTABLE_H
 
 #include <cstdlib>
 #include <cstring>
@@ -59,4 +59,4 @@ using VisitedListPoolPtr = std::shared_ptr<VisitedListPool>;
 
 }  // namespace graph
 
-#endif  //MYANNS_VISITTABLE_H
+#endif  //MERGE_VISITTABLE_H

@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/11/24.
 //
 
-#ifndef MYANNS_MERGE_H
-#define MYANNS_MERGE_H
+#ifndef MERGE_MERGE_H
+#define MERGE_MERGE_H
 
 #include "dataset.h"
 #include "dtype.h"
@@ -82,4 +82,4 @@ public:
     print_info() const override;
 };
 
-#endif  // MYANNS_MERGE_H
+#endif  // MERGE_MERGE_H

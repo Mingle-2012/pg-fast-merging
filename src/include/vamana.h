@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/11/23.
 //
 
-#ifndef MYANNS_VAMANA_H
-#define MYANNS_VAMANA_H
+#ifndef MERGE_VAMANA_H
+#define MERGE_VAMANA_H
 
 #include <omp.h>
 
@@ -87,4 +87,4 @@ public:
 
 }  // namespace diskann
 
-#endif  // MYANNS_VAMANA_H
+#endif  // MERGE_VAMANA_H

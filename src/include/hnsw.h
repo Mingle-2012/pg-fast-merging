@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/12/10.
 //
 
-#ifndef MYANNS_HNSW_H
-#define MYANNS_HNSW_H
+#ifndef MERGE_HNSW_H
+#define MERGE_HNSW_H
 
 #include <omp.h>
 
@@ -115,4 +115,4 @@ public:
 };
 }  // namespace hnsw
 
-#endif  // MYANNS_HNSW_H
+#endif  // MERGE_HNSW_H

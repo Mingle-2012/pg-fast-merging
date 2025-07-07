@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2025/3/2.
 //
 
-#ifndef MYANNS_MGRAPH_H
-#define MYANNS_MGRAPH_H
+#ifndef MERGE_MGRAPH_H
+#define MERGE_MGRAPH_H
 
 #include "fgim.h"
 
@@ -70,4 +70,4 @@ public:
     print_info() const override;
 };
 
-#endif  //MYANNS_MGRAPH_H
+#endif  //MERGE_MGRAPH_H

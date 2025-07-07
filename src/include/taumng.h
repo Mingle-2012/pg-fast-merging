@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/11/23.
 //
 
-#ifndef MYANNS_TAUMNG_H
-#define MYANNS_TAUMNG_H
+#ifndef MERGE_TAUMNG_H
+#define MERGE_TAUMNG_H
 
 #include <omp.h>
 
@@ -57,4 +57,4 @@ public:
 };
 }  // namespace taumng
 
-#endif  // MYANNS_TAUMNG_H
+#endif  // MERGE_TAUMNG_H

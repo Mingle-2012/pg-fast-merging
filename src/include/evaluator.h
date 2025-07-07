@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/11/23.
 //
 
-#ifndef MYANNS_EVALUATOR_H
-#define MYANNS_EVALUATOR_H
+#ifndef MERGE_EVALUATOR_H
+#define MERGE_EVALUATOR_H
 
 #include <unordered_set>
 #include <variant>
@@ -65,4 +65,4 @@ recall(std::variant<std::reference_wrapper<Index>, IndexPtr> index,
        unsigned runs = 5);
 }  // namespace graph
 
-#endif  // MYANNS_EVALUATOR_H
+#endif  // MERGE_EVALUATOR_H

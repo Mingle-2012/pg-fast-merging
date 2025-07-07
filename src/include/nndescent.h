@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/11/23.
 //
 
-#ifndef MYANNS_NNDESCENT_H
-#define MYANNS_NNDESCENT_H
+#ifndef MERGE_NNDESCENT_H
+#define MERGE_NNDESCENT_H
 
 #include <omp.h>
 
@@ -48,4 +48,4 @@ public:
 };
 }  // namespace nndescent
 
-#endif  // MYANNS_NNDESCENT_H
+#endif  // MERGE_NNDESCENT_H

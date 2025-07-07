@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2025/2/14.
 //
 
-#ifndef MYANNS_INDEX_H
-#define MYANNS_INDEX_H
+#ifndef MERGE_INDEX_H
+#define MERGE_INDEX_H
 
 #include <omp.h>
 
@@ -100,6 +100,4 @@ public:
     append(std::vector<IndexPtr>& indexes);
 };
 
-// TODO Support IndexFactory
-
-#endif  //MYANNS_INDEX_H
+#endif  //MERGE_INDEX_H

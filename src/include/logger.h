@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/11/23.
 //
 
-#ifndef MYANNS_LOGGER_H
-#define MYANNS_LOGGER_H
+#ifndef MERGE_LOGGER_H
+#define MERGE_LOGGER_H
 
 #include <omp.h>
 
@@ -97,4 +97,4 @@ static Log logger;
 
 }  // namespace graph
 
-#endif  // MYANNS_LOGGER_H
+#endif  // MERGE_LOGGER_H

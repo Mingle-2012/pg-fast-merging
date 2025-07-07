@@ -22,10 +22,16 @@ This repository contains the source code for the paper "Fast Graph-based Indexes
 - GCC 11.4.0
 - CMake 3.29
 - OpenMP 4.5
+- Ubuntu 22.04
+- C++17
 
 ### Run the code
 
-Change the dataset path and the metric in the `tests/test_index_construct.cpp` and `tests/test_merging_implemented_algorithms.cpp` files if you want to use your own dataset.
+Change the dataset path and the metric in C++ files in the `tests` directory if you want to use your own dataset.
+
+
+Currently, `l2` and `cosine` metrics are supported. The dataset should be in `fvecs` (also `ivecs`, which is used by the Sift1M dataset) format, or `fbin` (also `ibin` that is used by DiskANN) format.
+
 
 If you don't have the dataset, you can download the SIFT1M dataset with the following command:
 
@@ -33,12 +39,9 @@ If you don't have the dataset, you can download the SIFT1M dataset with the foll
 python3 dataset.py
 ```
 
-Then, compile on Ubuntu 22.04:
+Then, compile the code with the following commands:
 
 ```bash
-$ sudo apt-get install g++ cmake libomp-dev
-$ git clone https://github.com/Mingle-2012/pg-fast-merging.git
-$ cd pg-fast-merging
 $ mkdir build && cd build
 $ cmake ..
 $ make -j
@@ -88,14 +91,15 @@ Other pruning algorithms can be added to the `src/fgim.cpp` or `src/mgraph.cpp` 
 
 ### Datasets
 
-| Dataset | #Points   | #Dimensions | #Queries |
-|---------|-----------|-------------|----------|
-| SIFT1M  | 1,000,000 | 128         | 10,000   |
-| GIST1M  | 1,000,000 | 960         | 1,000    |
-| DEEP1M  | 1,000,000 | 96          | 10,000   |
-| MSong   | 994,185   | 420         | 1,000    |
-| GloVe   | 1,183,514 | 100         | 10,000   |
-| Crawl   | 1,989,995 | 300         | 10,000   |
+| Dataset         | #Points   | #Dimensions | #Queries |
+|-----------------|-----------|-------------|----------|
+| SIFT1M          | 1,000,000 | 128         | 10,000   |
+| GIST1M          | 1,000,000 | 960         | 1,000    |
+| DEEP1M          | 1,000,000 | 96          | 10,000   |
+| MSong           | 994,185   | 420         | 1,000    |
+| GloVe           | 1,183,514 | 100         | 10,000   |
+| Crawl           | 1,989,995 | 300         | 10,000   |
+| Internet Search | 9,991,307 | 768         | 172      |
 
 - For the SIFT1M and GIST1M datasets, you can download them from the [TEXMEX](http://corpus-texmex.irisa.fr/) website.
 - Thanks to [Yusuke Matsui](https://github.com/matsui528), you can download the DEEP1M dataset from his [repository](https://github.com/matsui528/deep1b_gt).

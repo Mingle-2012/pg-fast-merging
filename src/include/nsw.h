@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/11/23.
 //
 
-#ifndef MYANNS_NSW_H
-#define MYANNS_NSW_H
+#ifndef MERGE_NSW_H
+#define MERGE_NSW_H
 
 #include <omp.h>
 
@@ -51,4 +51,4 @@ public:
 };
 }  // namespace nsw
 
-#endif  // MYANNS_NSW_H
+#endif  // MERGE_NSW_H

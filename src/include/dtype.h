@@ -2,14 +2,8 @@
 // Created by XiaoWu on 2024/11/23.
 //
 
-/**
- * This implementation is based on the following references:
- * See https://github.com/facebookresearch/faiss and
- * https://github.com/JieFengWang/mini_rnn for more details.
- */
-
-#ifndef MYANNS_DTYPE_H
-#define MYANNS_DTYPE_H
+#ifndef MERGE_DTYPE_H
+#define MERGE_DTYPE_H
 
 #include <malloc.h>
 
@@ -572,4 +566,4 @@ public:
 };
 }  // namespace graph
 
-#endif  // MYANNS_DTYPE_H
+#endif  // MERGE_DTYPE_H

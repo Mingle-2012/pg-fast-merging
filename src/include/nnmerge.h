@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2025/3/29.
 //
 
-#ifndef MYANNS_NNMERGE_H
-#define MYANNS_NNMERGE_H
+#ifndef MERGE_NNMERGE_H
+#define MERGE_NNMERGE_H
 
 #include <omp.h>
 
@@ -57,4 +57,4 @@ public:
     print_info() const override;
 };
 }  // namespace nnmerge
-#endif  //MYANNS_NNMERGE_H
+#endif  //MERGE_NNMERGE_H

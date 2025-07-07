@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2025/3/29.
 //
 
-#ifndef MYANNS_KMEANS_H
-#define MYANNS_KMEANS_H
+#ifndef MERGE_KMEANS_H
+#define MERGE_KMEANS_H
 
 #include <omp.h>
 
@@ -68,4 +68,4 @@ public:
     Run();
 };
 
-#endif  //MYANNS_KMEANS_H
+#endif  //MERGE_KMEANS_H

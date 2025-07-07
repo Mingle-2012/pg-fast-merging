@@ -16,7 +16,6 @@ FGIM::FGIM(DatasetPtr& dataset, unsigned int max_degree, float sample_rate, bool
       sample_rate_(sample_rate) {
 }
 
-// TODO In the future, we will support loading from a file for each index type.
 void
 FGIM::load_latest(Graph& graph, const std::filesystem::path& directoryPath) {
     std::filesystem::path latestFilePath;

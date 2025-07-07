@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2025/3/1.
 //
 
-#ifndef MYANNS_DATASET_H
-#define MYANNS_DATASET_H
+#ifndef MERGE_DATASET_H
+#define MERGE_DATASET_H
 
 #include <unordered_set>
 #include "dtype.h"
@@ -123,4 +123,4 @@ using DatasetPtr = std::shared_ptr<Dataset>;
 
 }  // namespace graph
 
-#endif  //MYANNS_DATASET_H
+#endif  // MERGE_DATASET_H
