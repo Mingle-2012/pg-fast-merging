@@ -20,6 +20,16 @@ Index::Index(DatasetPtr& dataset, bool allocate)
     }
 }
 
+Index::Index(DatasetPtr& dataset, Graph& graph)
+    : dataset_(dataset),
+      oracle_(dataset->getOracle()),
+      base_(dataset->getBasePtr()),
+      visited_list_pool_(dataset->getVisitedListPool()),
+      graph_(std::move(graph)),
+      built_(true) {
+    flatten_graph_ = FlattenGraph(graph_);
+}
+
 void
 Index::build_internal() {
     throw std::runtime_error("Index does not support build");
@@ -27,6 +37,12 @@ Index::build_internal() {
 
 void
 Index::build() {
+    print_info();
+    if (built_) {
+        logger << "Index is already built, skipping build." << std::endl;
+        return;
+    }
+
     Timer timer;
     timer.start();
 
@@ -75,6 +91,18 @@ Index::search(const float* query, unsigned int topk, unsigned int L) const {
         throw std::runtime_error("Index is not built");
     }
     return graph::search(oracle_.get(), visited_list_pool_.get(), flatten_graph_, query, topk, L);
+}
+
+void
+Index::print_info() const {
+    logger << "Indexing settings:" << std::endl;
+    logger << "Dataset: " << dataset_->getName() << std::endl;
+    logger << "Dataset Size: " << oracle_->size() << std::endl;
+#pragma omp parallel
+    {
+#pragma omp single
+        { logger << "Number of threads: " << omp_get_num_threads() << std::endl; }
+    }
 }
 
 FlattenGraph&

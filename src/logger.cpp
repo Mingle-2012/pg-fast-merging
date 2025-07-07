@@ -4,7 +4,7 @@ using namespace graph;
 
 bool Log::verbose = false;
 bool Log::newLine = true;
-std::string Log::dir = "/root/code/algotests/myanns/logs";
+std::string Log::dir = "./logs";
 std::ofstream Log::logFile;
 std::mutex Log::mutex;
 
@@ -36,24 +36,57 @@ Log::getTimestamp() {
 }
 
 void
-Log::redirect(std::string filename) {
+Log::redirect(const std::string& filename) {
     if (logFile.is_open()) {
         logFile.close();
     }
-    if (!std::filesystem::exists(dir)) {
-        std::filesystem::create_directory(dir);
-    }
+
+    std::filesystem::path p(filename);
+    std::filesystem::path finalPath;
     std::string timestamp = getTimestamp();
-    if (filename.empty()) {
-        filename = dir + "/" + timestamp + ".txt";
+
+    if (p.is_absolute()) {
+        if (std::filesystem::is_directory(p)) {
+            if (!std::filesystem::exists(p)) {
+                std::filesystem::create_directories(p);
+            }
+            finalPath = p / (timestamp + ".log");
+        } else if (p.has_filename()) {
+            finalPath = p;
+            if (finalPath.has_parent_path() && !std::filesystem::exists(finalPath.parent_path())) {
+                std::filesystem::create_directories(finalPath.parent_path());
+            }
+        } else {
+            if (!std::filesystem::exists(p)) {
+                std::filesystem::create_directories(p);
+            }
+            finalPath = p / (timestamp + ".log");
+        }
     } else {
-        filename = dir + "/" + filename + ".log";
+        std::filesystem::path relativeBaseDir = dir;
+        if (p.has_filename()) {
+            finalPath = relativeBaseDir / p;
+            if (!finalPath.has_extension()) {
+                finalPath += ".log";
+            }
+        } else {
+            finalPath = relativeBaseDir / p / (timestamp + ".log");
+        }
+        if (finalPath.has_parent_path() && !std::filesystem::exists(finalPath.parent_path())) {
+            std::filesystem::create_directories(finalPath.parent_path());
+        }
     }
-    logFile.open(filename, std::ios::app);
+    if (std::filesystem::exists(finalPath)) {
+        std::string stem = finalPath.stem().string();
+        std::string extension = finalPath.extension().string();
+        finalPath = finalPath.parent_path() / (stem + "_" + timestamp + extension);
+    }
+    logFile.open(finalPath, std::ios::app);
     if (!logFile) {
-        throw std::runtime_error("Cannot open log file");
+        throw std::runtime_error("Cannot open log file: " + finalPath.string());
     }
     std::cout.rdbuf(logFile.rdbuf());
+    logger << "Logging to file: " << finalPath << std::endl;
 }
 
 Log::~Log() {

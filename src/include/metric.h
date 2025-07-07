@@ -6,8 +6,8 @@
 #include <cstdlib>
 #include <valarray>
 
-#ifndef MERGE_METRICS_H
-#define MERGE_METRICS_H
+#ifndef MYANNS_METRICS_H
+#define MYANNS_METRICS_H
 
 namespace graph::metric {
 struct l2 {
@@ -41,4 +41,4 @@ struct angular {
 };
 }  // namespace graph::metric
 
-#endif  // MERGE_METRICS_H
+#endif  // MYANNS_METRICS_H

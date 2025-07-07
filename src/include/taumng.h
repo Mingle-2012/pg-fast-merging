@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/11/23.
 //
 
-#ifndef MERGE_TAUMNG_H
-#define MERGE_TAUMNG_H
+#ifndef MYANNS_TAUMNG_H
+#define MYANNS_TAUMNG_H
 
 #include <omp.h>
 
@@ -16,18 +16,18 @@ namespace taumng {
 class TauMNG : public Index {
 private:
     /**
-   * tau
-   */
+                       * tau
+                       */
     float t_;
 
     /**
-   * same as k in knn HNSW_search
-   */
+                       * same as k in knn HNSW_search
+                       */
     int h_;
 
     /**
-   * search pool size
-   */
+                       * search pool size
+                       */
     int b_;
 
     Graph& base_;
@@ -37,13 +37,13 @@ private:
 
 public:
     /**
-   * @brief Build a TauMNG graph.
-   * @param oracle
-   * @param graph
-   * @param t
-   * @param h
-   * @param b
-   */
+         * @brief Build a TauMNG graph.
+         * @param oracle
+         * @param graph
+         * @param t
+         * @param h
+         * @param b
+         */
     TauMNG(DatasetPtr& dataset, Graph& base, float t, int h, int b);
 
     void
@@ -51,7 +51,10 @@ public:
 
     void
     set_h(int h);
+
+    void
+    print_info() const override;
 };
 }  // namespace taumng
 
-#endif  // MERGE_TAUMNG_H
+#endif  // MYANNS_TAUMNG_H

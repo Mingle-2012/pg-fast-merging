@@ -49,8 +49,8 @@ MGraph::CrossQuery(std::vector<IndexPtr>& indexes) {
     Timer timer;
     timer.start();
 
-    std::vector<std::reference_wrapper<Graph>> graphs;
-    std::vector<std::reference_wrapper<HGraph>> hgraphs;
+    std::vector<std::reference_wrapper<Graph> > graphs;
+    std::vector<std::reference_wrapper<HGraph> > hgraphs;
     bool isHGraph = true;
     for (auto& index : indexes) {
         auto hnsw_index = std::dynamic_pointer_cast<hnsw::HNSW>(index);
@@ -63,12 +63,13 @@ MGraph::CrossQuery(std::vector<IndexPtr>& indexes) {
     }
 
     size_t offset = 0;
-    std::vector<size_t> offsets;
+    offsets_.clear();
     if (isHGraph) {
         for (auto& g : hgraphs) {
             auto& graph_ref = g.get();
+            auto graph_size = graph_ref[0].size();
 #pragma omp parallel for schedule(dynamic)
-            for (size_t i = 0; i < graph_ref[0].size(); ++i) {
+            for (size_t i = 0; i < graph_size; ++i) {
                 auto& neighbors = graph_ref[0][i].candidates_;
                 for (size_t j = 0; j < neighbors.size() && j < max_base_degree_; ++j) {
                     auto& neighbor = neighbors[j];
@@ -78,14 +79,16 @@ MGraph::CrossQuery(std::vector<IndexPtr>& indexes) {
                 std::make_heap(graph_[0][i + offset].candidates_.begin(),
                                graph_[0][i + offset].candidates_.end());
             }
-            offset += graph_ref[0].size();
-            offsets.emplace_back(offset);
+            offset += graph_size;
+            max_index_size_ = std::max(max_index_size_, graph_size);
+            offsets_.emplace_back(offset);
         }
     } else {
         for (auto& g : graphs) {
             auto& graph_ref = g.get();
+            auto graph_size = graph_ref.size();
 #pragma omp parallel for schedule(dynamic)
-            for (size_t i = 0; i < graph_ref.size(); ++i) {
+            for (size_t i = 0; i < graph_size; ++i) {
                 auto& neighbors = graph_ref[i].candidates_;
                 for (size_t j = 0; j < neighbors.size() && j < max_base_degree_; ++j) {
                     auto& neighbor = neighbors[j];
@@ -95,8 +98,9 @@ MGraph::CrossQuery(std::vector<IndexPtr>& indexes) {
                 std::make_heap(graph_[0][i + offset].candidates_.begin(),
                                graph_[0][i + offset].candidates_.end());
             }
-            offset += graph_ref.size();
-            offsets.emplace_back(offset);
+            offset += graph_size;
+            max_index_size_ = std::max(max_index_size_, graph_size);
+            offsets_.emplace_back(offset);
         }
     }
 
@@ -116,18 +120,19 @@ MGraph::CrossQuery(std::vector<IndexPtr>& indexes) {
     //    }
 
     logger << "Performing Cross Query" << std::endl;
-    unsigned L = max_base_degree_ / (indexes.size() - 1);
+    unsigned L = max_degree_ / (indexes.size() - 1);
     logger << "ef_construction: " << L << std::endl;
 #pragma omp parallel for schedule(dynamic)
     for (int u = 0; u < oracle_->size(); ++u) {
-        auto cur_graph_idx = std::upper_bound(offsets.begin(), offsets.end(), u) - offsets.begin();
+        auto cur_graph_idx =
+            std::upper_bound(offsets_.begin(), offsets_.end(), u) - offsets_.begin();
         auto data = (*oracle_)[u];
 
         for (size_t graph_idx = 0; graph_idx < indexes.size(); graph_idx++) {
             if (graph_idx == cur_graph_idx) {
                 continue;
             }
-            auto _offset = graph_idx == 0 ? 0 : offsets[graph_idx - 1];
+            auto _offset = graph_idx == 0 ? 0 : offsets_[graph_idx - 1];
             auto& index = indexes[graph_idx];
             auto result = index->search(data, L, L);
             for (auto&& res : result) {
@@ -196,7 +201,7 @@ MGraph::ReconstructHGraph() {
 
 #pragma omp parallel for schedule(dynamic)
     for (int u = 0; u < oracle_->size(); u++) {
-        int level = levels[u];
+        int level = levels_[u];
         if (level == 0) {
             continue;
         }
@@ -266,14 +271,15 @@ MGraph::Combine(std::vector<IndexPtr>& indexes) {
         visited_list_pool_ = dataset_->getVisitedListPool();
         base_ = dataset_->getBasePtr();
     }
+    print_info();
 
     int total = oracle_->size();
     std::uniform_real_distribution<double> distribution(0.0, 1.0);
-    levels.reserve(total);
-    levels.resize(total);
+    levels_.reserve(total);
+    levels_.resize(total);
     for (int i = 0; i < total; ++i) {
-        levels[i] = (int)(-log(distribution(random_engine_)) * reverse_);
-        max_level_ = std::max(max_level_, levels[i]);
+        levels_[i] = (int)(-log(distribution(random_engine_)) * reverse_);
+        max_level_ = std::max(max_level_, levels_[i]);
     }
 
     graph_.reserve(max_level_ + 1);
@@ -284,20 +290,28 @@ MGraph::Combine(std::vector<IndexPtr>& indexes) {
     auto& base_layer = graph_[0];
     for (int i = 0; i < total; ++i) {
         base_layer[i].candidates_.reserve(max_base_degree_);
-        for (int level = 1; level <= levels[i]; ++level) {
+        for (int level = 1; level <= levels_[i]; ++level) {
             graph_[level][i].candidates_.reserve(max_degree_);
         }
     }
-    for (auto& u : base_layer) {
-        u.new_.reserve(max_base_degree_);
-        u.old_.reserve(max_base_degree_);
-    }
+    //    load_latest(graph_[0]);
 
     Timer timer;
     timer.start();
 
-    CrossQuery(indexes);
+    if (start_iter_ == 0) {
+        logger << "Start merging index from scratch." << std::endl;
+        CrossQuery(indexes);
+    } else {
+        logger << "Start merging index from iteration " << start_iter_ << std::endl;
+    }
 
+    logger << "Max Index Size " << max_index_size_ << std::endl;
+    logger << "Offsets:";
+    for (auto& v : offsets_) {
+        logger << " " << v;
+    }
+    logger << std::endl;
     Refinement();
 
     ReconstructHGraph();
@@ -320,4 +334,10 @@ MGraph::search(const float* query, unsigned int topk, unsigned int L) const {
     auto res = graph::search(
         oracle_.get(), visited_list_pool_.get(), flatten_graph_[0], query, topk, L, cur_node_);
     return res;
+}
+void
+MGraph::print_info() const {
+    FGIM::print_info();
+    logger << "MGraph Info:" << std::endl;
+    logger << "Ef Construction: " << ef_construction_ << std::endl;
 }

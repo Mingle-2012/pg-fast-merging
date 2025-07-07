@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/12/10.
 //
 
-#ifndef MERGE_HNSW_H
-#define MERGE_HNSW_H
+#ifndef MYANNS_HNSW_H
+#define MYANNS_HNSW_H
 
 #include <omp.h>
 
@@ -20,19 +20,21 @@ protected:
 
     FlattenHGraph flatten_graph_;
 
-    uint32_t max_neighbors_;
+    uint32_t max_neighbors_{};
 
-    uint32_t max_base_neighbors_;
+    uint32_t max_base_neighbors_{};
 
-    uint32_t max_level_;
+    uint32_t max_level_{};
 
-    uint32_t cur_max_level_;
+    uint32_t cur_max_level_{};
 
-    uint32_t ef_construction_;
+    uint32_t ef_construction_{};
 
-    std::vector<uint32_t> levels;
+    uint64_t cur_size_{1};
 
-    double reverse_;
+    std::vector<uint32_t> levels_;
+
+    double reverse_{};
 
     std::unordered_set<int> visited_table_;
 
@@ -69,9 +71,15 @@ protected:
     build_internal() override;
 
 public:
-    uint32_t enter_point_;
+    uint32_t enter_point_{};
 
     HNSW(DatasetPtr& dataset, int max_neighbors, int ef_construction);
+
+    HNSW(DatasetPtr& dataset,
+         HGraph& graph,
+         bool partial = false,
+         int max_neighbors = 32,
+         int ef_construction = 200);
 
     ~HNSW() override = default;
 
@@ -83,6 +91,12 @@ public:
 
     void
     build() override;
+
+    void
+    partial_build(uint64_t start, uint64_t end);
+
+    void
+    partial_build(uint64_t num = 0);
 
     Graph&
     extractGraph() override;
@@ -96,13 +110,9 @@ public:
     Neighbors
     search(const float* query, unsigned int topk, unsigned int L) const override;
 
-    //        virtual Neighbors
-    //        HNSW_search(HGraph &hnsw_graph,
-    //                    IndexOracle<float> &oracle,
-    //                    float *query,
-    //                    int topk,
-    //                    int ef_search) const;
+    void
+    print_info() const override;
 };
 }  // namespace hnsw
 
-#endif  // MERGE_HNSW_H
+#endif  // MYANNS_HNSW_H

@@ -2,14 +2,14 @@
 // Created by XiaoWu on 2025/3/2.
 //
 
-#ifndef MERGE_MGRAPH_H
-#define MERGE_MGRAPH_H
+#ifndef MYANNS_MGRAPH_H
+#define MYANNS_MGRAPH_H
 
 #include "fgim.h"
 
 using namespace graph;
 
-// MGraph refers to Merged hierarchical Graph index
+// MGraph refers to Merged hierarchical Graph-based anns index
 class MGraph : public FGIM {
 private:
     HGraph graph_;
@@ -26,7 +26,7 @@ private:
 
     uint32_t cur_max_level_;
 
-    std::vector<uint32_t> levels;
+    std::vector<uint32_t> levels_;
 
     std::mutex graph_lock_;
 
@@ -65,6 +65,9 @@ public:
 
     Neighbors
     search(const float* query, unsigned int topk, unsigned int L) const override;
+
+    void
+    print_info() const override;
 };
 
-#endif  // MERGE_MGRAPH_H
+#endif  //MYANNS_MGRAPH_H

@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2025/3/29.
 //
 
-#ifndef MERGE_KMEANS_H
-#define MERGE_KMEANS_H
+#ifndef MYANNS_KMEANS_H
+#define MYANNS_KMEANS_H
 
 #include <omp.h>
 
@@ -17,6 +17,7 @@
 
 #include "dataset.h"
 
+// TODO Only center is needed. Point can be replaced by short*.
 struct Point {
     Point() = default;
 
@@ -55,11 +56,11 @@ public:
     Kmeans(DatasetPtr& dataset, int k);
 
     /**
-   * Get the ell nearest centers of the p
-   * @param p
-   * @param ell
-   * @return
-   */
+     * Get the ell nearest centers of the p
+     * @param p
+     * @param ell
+     * @return
+     */
     std::vector<int>
     NearestCenter(int p, int ell);
 
@@ -67,4 +68,4 @@ public:
     Run();
 };
 
-#endif  // MERGE_KMEANS_H
+#endif  //MYANNS_KMEANS_H

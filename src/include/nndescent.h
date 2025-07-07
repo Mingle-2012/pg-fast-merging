@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/11/23.
 //
 
-#ifndef MERGE_NNDESCENT_H
-#define MERGE_NNDESCENT_H
+#ifndef MYANNS_NNDESCENT_H
+#define MYANNS_NNDESCENT_H
 
 #include <omp.h>
 
@@ -42,7 +42,10 @@ public:
     NNDescent(DatasetPtr& dataset, int K, float rho = 0.5, float delta = 0.001, int iteration = 20);
 
     ~NNDescent() override = default;
+
+    void
+    print_info() const override;
 };
 }  // namespace nndescent
 
-#endif  // MERGE_NNDESCENT_H
+#endif  // MYANNS_NNDESCENT_H

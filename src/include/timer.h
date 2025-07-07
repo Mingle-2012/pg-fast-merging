@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/11/23.
 //
 
-#ifndef MERGE_TIMER_H
-#define MERGE_TIMER_H
+#ifndef MYANNS_TIMER_H
+#define MYANNS_TIMER_H
 
 #include <chrono>
 #include <stdexcept>
@@ -31,4 +31,4 @@ public:
 };
 }  // namespace graph
 
-#endif  // MERGE_TIMER_H
+#endif  // MYANNS_TIMER_H

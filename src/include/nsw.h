@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/11/23.
 //
 
-#ifndef MERGE_NSW_H
-#define MERGE_NSW_H
+#ifndef MYANNS_NSW_H
+#define MYANNS_NSW_H
 
 #include <omp.h>
 
@@ -45,7 +45,10 @@ public:
     set_ef_construction(int ef_construction) {
         this->ef_construction_ = ef_construction;
     }
+
+    void
+    print_info() const override;
 };
 }  // namespace nsw
 
-#endif  // MERGE_NSW_H
+#endif  // MYANNS_NSW_H

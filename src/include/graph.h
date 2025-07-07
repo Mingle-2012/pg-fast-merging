@@ -2,8 +2,14 @@
 // Created by XiaoWu on 2024/11/23.
 //
 
-#ifndef MERGE_GRAPH_H
-#define MERGE_GRAPH_H
+/**
+ * This implementation is based on the following references:
+ * See https://github.com/facebookresearch/faiss and
+ * https://github.com/JieFengWang/mini_rnn for more details.
+ */
+
+#ifndef MYANNS_GRAPH_H
+#define MYANNS_GRAPH_H
 
 #include <algorithm>
 #include <bitset>
@@ -16,6 +22,7 @@
 #include <random>
 #include <stack>
 
+#include "dataset.h"
 #include "dtype.h"
 #include "visittable.h"
 
@@ -87,29 +94,28 @@ struct Neighborhood {
     Neighborhood(const Neighborhood& other);
 
     /**
-   * Assure that candidates_ is already a heap with manually reserved capacity.
-   * Otherwise, this operation is invalid.
-   * @param id
-   * @param dist
-   * @return
-   */
+             * Assure that candidates_ is already a heap with manually reserved capacity.
+             * Otherwise, this operation is invalid.
+             * @param id
+             * @param dist
+             * @return
+             */
     unsigned
     pushHeap(int id, float dist);
 
     /**
-   * This function add nn into sorted candidates_ within a capacity limit.
-   * A capacity of negative numbers refers to no limit.
-   * @param nn
-   * @param capacity
-   */
+             * This function add nn into sorted candidates_ within a capacity limit.
+             * A capacity of negative numbers refers to no limit.
+             * @param nn
+             * @param capacity
+             */
     void
     addNeighbor(Neighbor nn, int capacity = -1);
 
     /**
-   * @brief Move the content of the other neighborhood to this neighborhood.
-   * Note that only the candidates are moved.
-   * @param other
-   */
+             * @brief Move the content of the other neighborhood to this neighborhood. Note that only the candidates are moved.
+             * @param other
+             */
     void
     move(Neighborhood& other);
 };
@@ -125,8 +131,7 @@ struct FlattenGraph {
 
     explicit FlattenGraph(const Graph& graph);
 
-    virtual std::vector<int>
-    operator[](int i) const;
+    virtual std::vector<int> operator[](int i) const;
 
     virtual ~FlattenGraph() = default;
 };
@@ -138,8 +143,7 @@ struct FlattenHGraph {
 
     explicit FlattenHGraph(const HGraph& graph);
 
-    FlattenGraph&
-    operator[](int i) const;
+    FlattenGraph& operator[](int i) const;
 
     [[nodiscard]] int
     size() const;
@@ -230,16 +234,16 @@ track_search(IndexOracle<float>* oracle,
              int entry_id);
 
 /**
- * @brief Search the graph with the given query.
- * @param oracle
- * @param fg
- * @param query
- * @param topk
- * @param search_L
- * @param entry_id
- * @param K0
- * @return
- */
+     * @brief Search the graph with the given query.
+     * @param oracle
+     * @param fg
+     * @param query
+     * @param topk
+     * @param search_L
+     * @param entry_id
+     * @param K0
+     * @return
+     */
 Neighbors
 search(IndexOracle<float>* oracle,
        VisitedListPool* visited_list_pool,
@@ -253,14 +257,17 @@ search(IndexOracle<float>* oracle,
 int
 checkConnectivity(const Graph& graph);
 
-void
+std::string
 saveGraph(Graph& graph, const std::string& filename);
 
-void
+std::string
 saveHGraph(HGraph& hgraph, const std::string& filename);
 
 void
-loadGraph(Graph& graph, const std::string& filename);
+loadGraph(Graph& graph, const std::string& index_path, const OraclePtr& oracle = nullptr);
+
+void
+loadHGraph(HGraph& hgraph, const std::string& index_path, const OraclePtr& oracle = nullptr);
 }  // namespace graph
 
-#endif  // MERGE_GRAPH_H
+#endif  // MYANNS_GRAPH_H

@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2025/2/14.
 //
 
-#ifndef MERGE_INDEX_H
-#define MERGE_INDEX_H
+#ifndef MYANNS_INDEX_H
+#define MYANNS_INDEX_H
 
 #include <omp.h>
 
@@ -44,6 +44,8 @@ public:
 
     explicit Index(DatasetPtr& dataset, bool allocate = true);
 
+    explicit Index(DatasetPtr& dataset, Graph& graph);
+
     virtual ~Index() = default;
 
     virtual void
@@ -53,10 +55,9 @@ public:
     build();
 
     /**
-   * Add a dataset to the existing index. Note that data from the dataset will
-   * be appended to the existing data.
-   * @param dataset
-   */
+     * Add a dataset to the existing index. Note that data from the dataset will be appended to the existing data.
+     * @param dataset
+     */
     virtual void
     add(DatasetPtr& dataset);
 
@@ -70,15 +71,17 @@ public:
     extractDataset();
 
     /**
-   * @brief The basic search function. It initializes with L random nodes and
-   * greedily expands the candidates. The results are pruned by the topk.
-   * @param query
-   * @param topk
-   * @param L
-   * @return
-   */
+     * @brief The basic search function. It initializes with L random nodes and greedily expands the candidates. The results are pruned by the topk.
+     * @param query
+     * @param topk
+     * @param L
+     * @return
+     */
     virtual Neighbors
     search(const float* query, unsigned int topk, unsigned int L) const;
+
+    virtual void
+    print_info() const;
 };
 
 using IndexPtr = std::shared_ptr<Index>;
@@ -97,4 +100,6 @@ public:
     append(std::vector<IndexPtr>& indexes);
 };
 
-#endif  // MERGE_INDEX_H
+// TODO Support IndexFactory
+
+#endif  //MYANNS_INDEX_H

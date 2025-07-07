@@ -36,7 +36,7 @@ Kmeans::Init() {
 
 std::vector<int>
 Kmeans::NearestCenter(int p, int ell) {
-    std::vector<std::pair<int, float>> distance;
+    std::vector<std::pair<int, float> > distance;
     for (int k = 0; k < k_; k++) {
         distance.emplace_back(k, (*oracle_)(p, centers_[k].id_));
     }

@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/11/23.
 //
 
-#ifndef MERGE_VAMANA_H
-#define MERGE_VAMANA_H
+#ifndef MYANNS_VAMANA_H
+#define MYANNS_VAMANA_H
 
 #include <omp.h>
 
@@ -16,18 +16,18 @@ namespace diskann {
 class Vamana : public Index {
 private:
     /**
-   * alpha
-   */
+       * alpha
+       */
     float alpha_;
 
     /*
-   * search pool size
-   */
+       * search pool size
+       */
     int L_;
 
     /**
-   * maximum number of neighbors
-   */
+       * maximum number of neighbors
+       */
     int R_;
 
     void
@@ -38,12 +38,12 @@ private:
 
 public:
     /**
-   *
-   * @param dataset
-   * @param alpha
-   * @param L
-   * @param R
-   */
+             *
+             * @param dataset
+             * @param alpha
+             * @param L
+             * @param R
+             */
     Vamana(DatasetPtr& dataset, float alpha, int L, int R);
 
     ~Vamana() override = default;
@@ -59,6 +59,9 @@ public:
 
     void
     partial_build(std::vector<uint32_t>& permutation);
+
+    void
+    print_info() const override;
 };
 
 class DiskANN : public Index {
@@ -84,4 +87,4 @@ public:
 
 }  // namespace diskann
 
-#endif  // MERGE_VAMANA_H
+#endif  // MYANNS_VAMANA_H

@@ -149,8 +149,7 @@ FlattenGraph::FlattenGraph(const Graph& graph) {
     }
 }
 
-std::vector<int>
-FlattenGraph::operator[](int i) const {
+std::vector<int> FlattenGraph::operator[](int i) const {
     return {final_graph.begin() + offsets[i], final_graph.begin() + offsets[i + 1]};
 }
 
@@ -166,8 +165,7 @@ FlattenHGraph::FlattenHGraph(const HGraph& graph) {
     }
 }
 
-FlattenGraph&
-FlattenHGraph::operator[](int i) const {
+FlattenGraph& FlattenHGraph::operator[](int i) const {
     return const_cast<FlattenGraph&>(graphs_[i]);
 }
 
@@ -461,61 +459,120 @@ graph::track_search(IndexOracle<float>* oracle,
     return track;
 }
 
-std::string graph_output_dir = "/root/code/algotests/myanns/outputs/";
+std::string graph_output_dir = "./graph_output/";
+std::string
+get_path(std::string filename) {
+    if (filename.find(".bin") == std::string::npos) {
+        filename += ".bin";
+    }
+    std::filesystem::path p(filename);
+    if (p.is_absolute()) {
+        std::filesystem::path parent_dir = p.parent_path();
+        std::string stem = p.stem().string();
+        std::string extension = p.extension().string();
 
-void
+        if (!parent_dir.empty() && !std::filesystem::exists(parent_dir)) {
+            std::filesystem::create_directories(parent_dir);
+        }
+
+        if (std::filesystem::exists(p)) {
+            std::mt19937 rng(std::random_device{}());
+            std::string new_relative_filename = stem + "_" + std::to_string(rng()) + extension;
+            filename = (parent_dir / new_relative_filename).string();
+        } else {
+            filename = p.string();
+        }
+        return filename;
+    }
+    if (!std::filesystem::exists(graph_output_dir)) {
+        std::filesystem::create_directories(graph_output_dir);
+    }
+    std::filesystem::path pp(graph_output_dir + filename);
+    if (std::filesystem::exists(pp)) {
+        std::mt19937 rng(std::random_device{}());
+        filename = pp.stem().string() + "_" + std::to_string(rng()) + pp.extension().string();
+    }
+    return graph_output_dir + filename;
+}
+
+std::string
 graph::saveGraph(Graph& graph, const std::string& filename) {
     if (graph.empty()) {
-        return;
+        return "";
     }
-    std::ofstream file(graph_output_dir + filename);
-    file << std::fixed;
+    auto path = get_path(filename);
+    std::ofstream file(path, std::ios::out | std::ios::binary);
     if (!file.is_open()) {
         throw std::runtime_error("Cannot open the file");
     }
-    std::ifstream checkFile(graph_output_dir + filename, std::ios::ate);
-    if (checkFile && checkFile.tellg() != 0) {
-        file.close();
-        std::mt19937 rng(seed);
-        std::string new_filename = filename + "_" + std::to_string(rng());
-        file = std::ofstream(graph_output_dir + new_filename);
-    }
-    checkFile.close();
+    logger << "Saving graph to " << path << std::endl;
 
-    file << graph.size() << std::endl;
+    size_t graph_size = graph.size();
+    file.write(reinterpret_cast<const char*>(&graph_size), sizeof(graph_size));
+
     for (size_t i = 0; i < graph.size(); ++i) {
-        std::sort(graph[i].candidates_.begin(), graph[i].candidates_.end());
-        file << i << " " << graph[i].candidates_.size() << std::endl;
-        for (auto& neighbor : graph[i].candidates_) {
-            file << neighbor.id << " ";
+        file.write(reinterpret_cast<const char*>(&i), sizeof(i));
+        size_t num_neighbors = graph[i].candidates_.size();
+        file.write(reinterpret_cast<const char*>(&num_neighbors), sizeof(num_neighbors));
+        for (const auto& neighbor : graph[i].candidates_) {
+            file.write(reinterpret_cast<const char*>(&neighbor.id), sizeof(neighbor.id));
         }
-        file << std::endl;
     }
-
     file.close();
+    return path;
 }
 
 void
+graph::loadGraph(Graph& graph, const std::string& index_path, const OraclePtr& oracle) {
+    std::ifstream file(index_path, std::ios::in | std::ios::binary);
+
+    logger << "Loading graph from " << index_path << std::endl;
+    if (!file.is_open()) {
+        throw std::runtime_error("Cannot open the file for reading: " + index_path);
+    }
+
+    size_t graph_size;
+    file.read(reinterpret_cast<char*>(&graph_size), sizeof(graph_size));
+    graph.resize(graph_size);
+
+    for (size_t i = 0; i < graph_size; ++i) {
+        size_t node_id;
+        file.read(reinterpret_cast<char*>(&node_id), sizeof(node_id));
+
+        size_t num_neighbors;
+        file.read(reinterpret_cast<char*>(&num_neighbors), sizeof(num_neighbors));
+
+        graph[node_id].candidates_.resize(num_neighbors);
+        for (size_t j = 0; j < num_neighbors; ++j) {
+            file.read(reinterpret_cast<char*>(&graph[node_id].candidates_[j].id),
+                      sizeof(graph[node_id].candidates_[j].id));
+        }
+    }
+    file.close();
+
+    if (oracle != nullptr) {
+        for (size_t i = 0; i < graph.size(); ++i) {
+            for (auto& c : graph[i].candidates_) {
+                c.distance = (*oracle)(i, c.id);
+            }
+        }
+    }
+}
+
+std::string
 graph::saveHGraph(HGraph& hgraph, const std::string& filename) {
     if (hgraph.empty()) {
-        return;
+        logger << "HGraph is empty, nothing to save." << std::endl;
+        return "";
     }
-    std::ofstream file(graph_output_dir + filename);
-    file << std::fixed;
+    std::string full_filepath = get_path(filename);
+    std::ofstream file(full_filepath, std::ios::out | std::ios::binary);
     if (!file.is_open()) {
         throw std::runtime_error("Cannot open the file");
     }
-    std::ifstream checkFile(graph_output_dir + filename, std::ios::ate);
-    if (checkFile && checkFile.tellg() != 0) {
-        file.close();
-        std::mt19937 rng(seed);
-        std::string new_filename = filename + "_" + std::to_string(rng());
-        file = std::ofstream(graph_output_dir + new_filename);
-    }
-    checkFile.close();
 
     std::vector<int> levels(hgraph[0].size(), 0);
-    for (int i = hgraph.size() - 1; i > 0; --i) {
+    for (int i = hgraph.size() - 1; i >= 0; --i) {
         for (int j = 0; j < hgraph[i].size(); ++j) {
             if (hgraph[i][j].candidates_.empty()) {
                 continue;
@@ -524,54 +581,78 @@ graph::saveHGraph(HGraph& hgraph, const std::string& filename) {
         }
     }
 
-    file << hgraph.size() << std::endl;
-    for (size_t i = 0; i < hgraph[0].size(); ++i) {
-        file << i << " " << levels[i] << std::endl;
-        for (int j = 0; j <= levels[i]; ++j) {
-            auto& graph = hgraph[j];
-            if (graph[i].candidates_.empty()) {
-                continue;
-            }
-            file << j << " " << graph[i].candidates_.size() << " ";
-            for (auto& neighbor : graph[i].candidates_) {
-                file << neighbor.id << " ";
+    int64_t graph_size = hgraph[0].size();
+    int64_t max_level = hgraph.size() - 1;
+    logger << "Saving HGraph to " << full_filepath << std::endl;
+    logger << "Graph size: " << graph_size << ", Max level: " << max_level << std::endl;
+    file.write(reinterpret_cast<const char*>(&graph_size), sizeof(graph_size));
+    file.write(reinterpret_cast<const char*>(&max_level), sizeof(max_level));
+    for (int64_t i = 0; i < graph_size; ++i) {
+        file.write(reinterpret_cast<const char*>(&i), sizeof(i));
+        int level = levels[i];
+        file.write(reinterpret_cast<const char*>(&level), sizeof(level));
+        for (int j = 0; j <= level; ++j) {
+            int64_t num_candidates = hgraph[j][i].candidates_.size();
+            file.write(reinterpret_cast<const char*>(&num_candidates), sizeof(num_candidates));
+            for (const auto& neighbor : hgraph[j][i].candidates_) {
+                file.write(reinterpret_cast<const char*>(&neighbor.id), sizeof(neighbor.id));
             }
         }
-        file << std::endl;
     }
-
     file.close();
+    return full_filepath;
 }
 
 void
-graph::loadGraph(Graph& graph, const std::string& filename) {
-    std::ifstream file(filename);
+graph::loadHGraph(HGraph& hgraph, const std::string& index_path, const OraclePtr& oracle) {
+    std::ifstream file(index_path, std::ios::in | std::ios::binary);
+
     if (!file.is_open()) {
-        return;
+        throw std::runtime_error("Cannot open the file for reading: " + index_path);
     }
-    unsigned rows;
-    file >> rows;
-    graph.clear();
-    graph.reserve(rows);
-    for (size_t i = 0; i < rows; ++i) {
-        unsigned id, num;
-        file >> id >> num;
-        Neighborhood neighborhood;
-        neighborhood.candidates_.reserve(num);
-        for (size_t j = 0; j < num; ++j) {
-            unsigned tmp;
-            float dist;
-            file >> tmp >> dist;
-            neighborhood.candidates_.emplace_back(tmp, dist, false);
+
+    int64_t graph_size, max_level;
+    file.read(reinterpret_cast<char*>(&graph_size), sizeof(graph_size));
+    file.read(reinterpret_cast<char*>(&max_level), sizeof(max_level));
+
+    hgraph.resize(max_level + 1);
+    for (int i = 0; i <= max_level; ++i) {
+        hgraph[i].resize(graph_size);
+    }
+
+    logger << "Loading HGraph from " << index_path << std::endl;
+    logger << "Graph size: " << graph_size << ", Max level: " << max_level << std::endl;
+    for (int i = 0; i < graph_size; ++i) {
+        int64_t node_id;
+        file.read(reinterpret_cast<char*>(&node_id), sizeof(node_id));
+        int level;
+        file.read(reinterpret_cast<char*>(&level), sizeof(level));
+        for (int j = 0; j <= level; ++j) {
+            int64_t num_neighbors;
+            file.read(reinterpret_cast<char*>(&num_neighbors), sizeof(num_neighbors));
+            hgraph[j][node_id].candidates_.resize(num_neighbors);
+            for (int k = 0; k < num_neighbors; ++k) {
+                file.read(reinterpret_cast<char*>(&hgraph[j][node_id].candidates_[k].id),
+                          sizeof(hgraph[j][node_id].candidates_[k].id));
+            }
         }
-        graph.push_back(neighborhood);
     }
     file.close();
+
+    if (oracle != nullptr) {
+        for (int i = 0; i < static_cast<int>(hgraph.size()); ++i) {
+            for (int j = 0; j < static_cast<int>(hgraph[i].size()); ++j) {
+                for (auto& c : hgraph[i][j].candidates_) {
+                    c.distance = (*oracle)(j, c.id);
+                }
+            }
+        }
+    }
 }
 
 int
 graph::checkConnectivity(const Graph& graph) {
-    int n = (int)graph.size();
+    const int n = static_cast<int>(graph.size());
     std::vector<bool> visited(n, false);
     std::stack<int> finishStack;
 

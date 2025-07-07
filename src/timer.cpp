@@ -26,5 +26,5 @@ Timer::end() {
 
 double
 Timer::elapsed() const {
-    return std::chrono::duration_cast<std::chrono::duration<double>>(_end - _start).count();
+    return std::chrono::duration_cast<std::chrono::duration<double> >(_end - _start).count();
 }

@@ -4,25 +4,24 @@ nsw::NSW::NSW(DatasetPtr& dataset, int max_neighbors, int ef_construction)
     : Index(dataset), max_neighbors_(max_neighbors), ef_construction_(ef_construction) {
 }
 
-// void
-// nsw::NSW::build() {
-//     Timer timer;
-//     timer.start();
+//void
+//nsw::NSW::build() {
+//    Timer timer;
+//    timer.start();
 //
-//     int total = oracle_->size();
-//     graph_.emplace_back(max_neighbors_);
+//    int total = oracle_->size();
+//    graph_.emplace_back(max_neighbors_);
 //
-//     for (int i = 1; i < total; ++i) {
-//         if (i % 10000 == 0) {
-//             logger << "Processing " << i << " / " << graph_.size() <<
-//             std::endl;
-//         }
-//         addPoint(i);
-//     }
+//    for (int i = 1; i < total; ++i) {
+//        if (i % 10000 == 0) {
+//            logger << "Processing " << i << " / " << graph_.size() << std::endl;
+//        }
+//        addPoint(i);
+//    }
 //
-//     timer.end();
-//     logger << "Construction time: " << timer.elapsed() << "s" << std::endl;
-// }
+//    timer.end();
+//    logger << "Construction time: " << timer.elapsed() << "s" << std::endl;
+//}
 
 void
 nsw::NSW::addPoint(unsigned int index) {
@@ -113,9 +112,6 @@ nsw::NSW::add(DatasetPtr& dataset) {
     }
     built_ = false;
 
-    Timer timer;
-    timer.start();
-
     auto cur_size = oracle_->size();
     auto total = dataset->getOracle()->size() + cur_size;
     graph_.reserve(total);
@@ -124,7 +120,10 @@ nsw::NSW::add(DatasetPtr& dataset) {
         std::vector<DatasetPtr> datasets = {dataset};
         dataset_->merge(datasets);
     }
+    print_info();
 
+    Timer timer;
+    timer.start();
 #pragma omp parallel for schedule(dynamic)
     for (int i = cur_size; i < total; ++i) {
         if (i % 10000 == 0) {
@@ -138,4 +137,11 @@ nsw::NSW::add(DatasetPtr& dataset) {
 
     flatten_graph_ = FlattenGraph(graph_);
     built_ = true;
+}
+void
+nsw::NSW::print_info() const {
+    Index::print_info();
+    logger << "NSW Index Info:" << std::endl;
+    logger << "Max neighbors: " << max_neighbors_ << std::endl;
+    logger << "EF Construction: " << ef_construction_ << std::endl;
 }

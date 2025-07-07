@@ -15,7 +15,9 @@ Dataset::getInstance(const std::string& name, const std::string& size) {
 std::shared_ptr<Dataset>
 Dataset::getInstance(const std::string& base_path, DISTANCE metric) {
     auto dataset = std::make_shared<Dataset>();
-    dataset->name_ = "custom";
+    dataset->name_ =
+        base_path.substr(base_path.find_last_of("/\\") + 1,
+                         base_path.find_last_of('.') - base_path.find_last_of("/\\") - 1);
     dataset->size_ = "custom";
 
     dataset->base_->load(base_path);
@@ -47,7 +49,9 @@ Dataset::getInstance(const std::string& base_path,
                      const std::string& groundtruth_path,
                      DISTANCE metric) {
     auto dataset = std::make_shared<Dataset>();
-    dataset->name_ = "custom";
+    dataset->name_ =
+        base_path.substr(base_path.find_last_of("/\\") + 1,
+                         base_path.find_last_of('.') - base_path.find_last_of("/\\") - 1);
     dataset->size_ = "custom";
 
     dataset->base_->load(base_path);
@@ -76,9 +80,9 @@ Dataset::getInstance(const std::string& base_path,
 }
 
 Dataset::Dataset() {
-    base_ = std::make_shared<Matrix<float>>();
-    query_ = std::make_shared<Matrix<float>>();
-    groundTruth_ = std::make_shared<Matrix<int>>();
+    base_ = std::make_shared<Matrix<float> >();
+    query_ = std::make_shared<Matrix<float> >();
+    groundTruth_ = std::make_shared<Matrix<int> >();
 
     distance_ = DISTANCE::L2;
     oracle_ = nullptr;
@@ -136,8 +140,13 @@ Dataset::load() {
     visited_list_pool_ = VisitedListPool::getInstance(base_->size());
 }
 
+void
+Dataset::createOracle() {
+    // TODO create oracle based on the distance metric or dataset name
+}
+
 Matrix<float>&
-Dataset::getBase() {
+Dataset::getBase() const {
     if (base_->empty()) {
         throw std::runtime_error("Base matrix is empty");
     }
@@ -145,7 +154,7 @@ Dataset::getBase() {
 }
 
 Matrix<float>&
-Dataset::getQuery() {
+Dataset::getQuery() const {
     if (!full_dataset_) {
         throw std::runtime_error("Dataset is not fully loaded");
     }
@@ -156,7 +165,7 @@ Dataset::getQuery() {
 }
 
 Matrix<int>&
-Dataset::getGroundTruth() {
+Dataset::getGroundTruth() const {
     if (!full_dataset_) {
         throw std::runtime_error("Dataset is not fully loaded");
     }
@@ -197,7 +206,7 @@ Dataset::split(std::vector<DatasetPtr>& datasets, unsigned int num) {
     }
     for (unsigned int i = 0; i < num - 1; i++) {
         datasets[i] = std::make_shared<Dataset>();
-        datasets[i]->base_ = std::make_shared<Matrix<float>>(matrices[i]);
+        datasets[i]->base_ = std::make_shared<Matrix<float> >(matrices[i]);
         if (angular) {
             datasets[i]->oracle_ =
                 MatrixOracle<float, metric::angular>::getInstance(*datasets[i]->base_);
@@ -208,8 +217,48 @@ Dataset::split(std::vector<DatasetPtr>& datasets, unsigned int num) {
         datasets[i]->full_dataset_ = false;
         datasets[i]->name_ = name_;
         datasets[i]->distance_ = distance_;
+        // Is it ok to use the same visited list pool?
+        // NOTE: we assume that the datasets are not used concurrently
         datasets[i]->visited_list_pool_ = visited_list_pool_;
     }
+}
+
+std::vector<std::shared_ptr<Dataset> >
+Dataset::subsets(const unsigned int num) const {
+    if (!full_dataset_) {
+        throw std::runtime_error("Dataset is not fully loaded");
+    }
+
+    bool angular = false;
+    if (angular_datasets.find(name_) != angular_datasets.end()) {
+        angular = true;
+    }
+    std::vector<std::shared_ptr<Dataset> > datasets;
+    size_t size = oracle_->size() / num;
+    size_t remainder = oracle_->size() % num;
+    size_t offset = 0;
+    for (unsigned int i = 0; i < num; i++) {
+        if (i == num - 1) {
+            size += remainder;
+        }
+        auto dataset = std::make_shared<Dataset>();
+        dataset->base_ = std::make_shared<Matrix<float> >(*base_, offset, size);
+        logger << "Creating subset of " << name_ << " " << i + 1 << "/" << num << " with size "
+               << dataset->base_->size() << std::endl;
+        if (angular) {
+            dataset->oracle_ = MatrixOracle<float, metric::angular>::getInstance(*dataset->base_);
+        } else {
+            dataset->oracle_ = MatrixOracle<float, metric::l2>::getInstance(*dataset->base_);
+        }
+        dataset->name_ = name_;
+        dataset->size_ = size_;
+        dataset->distance_ = distance_;
+        dataset->visited_list_pool_ = visited_list_pool_;
+        dataset->full_dataset_ = false;
+        offset += size;
+        datasets.emplace_back(dataset);
+    }
+    return datasets;
 }
 
 void
@@ -217,7 +266,7 @@ Dataset::merge(std::vector<DatasetPtr>& datasets) {
     if (!full_dataset_) {
         throw std::runtime_error("Dataset is not the full dataset");
     }
-    std::vector<MatrixPtr<float>> matrices;
+    std::vector<MatrixPtr<float> > matrices;
     for (auto& dataset : datasets) {
         if (distance_ != dataset->distance_) {
             throw std::runtime_error("Cannot merge datasets with different distance metrics");
@@ -233,18 +282,22 @@ Dataset::merge(std::vector<DatasetPtr>& datasets) {
 
 DatasetPtr
 Dataset::aggregate(std::vector<DatasetPtr>& datasets) {
+    // TODO support merging datasets without query and ground truth
     if (datasets.empty()) {
         throw std::runtime_error("No dataset to merge");
     }
-    DatasetPtr base = nullptr;
+    DatasetPtr base = datasets[0];
     for (auto& dataset : datasets) {
+        if (dataset->getBasePtr()->belong(base->getBase())) {
+            throw std::runtime_error("Cannot merge datasets that are subsets of each other");
+        }
         if (dataset->full_dataset_) {
             base = dataset;
             break;
         }
     }
     auto distance = base->getDistance();
-    std::vector<MatrixPtr<float>> matrices;
+    std::vector<MatrixPtr<float> > matrices;
     for (const auto& dataset : datasets) {
         matrices.emplace_back(dataset->getBasePtr());
         if (dataset->full_dataset_) {
@@ -258,7 +311,7 @@ Dataset::aggregate(std::vector<DatasetPtr>& datasets) {
         }
     }
 
-    auto matrixPtr = std::make_shared<Matrix<float>>(matrices);
+    auto matrixPtr = std::make_shared<Matrix<float> >(matrices);
     auto dataset = std::make_shared<Dataset>();
     dataset->base_ = matrixPtr;
     dataset->distance_ = distance;
@@ -295,13 +348,13 @@ Dataset::getSize() {
     return size_;
 }
 
-std::vector<std::vector<unsigned int>>
+std::vector<std::vector<unsigned int> >
 graph::loadGroundTruth(const std::string& filename, unsigned int qsize, unsigned int K) {
     std::ifstream input(filename, std::ios::binary);
     if (!input.is_open()) {
         throw std::runtime_error("Cannot open file " + filename);
     }
-    std::vector<std::vector<unsigned>> groundTruth(qsize, std::vector<unsigned>(K));
+    std::vector<std::vector<unsigned> > groundTruth(qsize, std::vector<unsigned>(K));
     int t;
     input.read((char*)&t, 4);
     std::vector<int> temp(t);

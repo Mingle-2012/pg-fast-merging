@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/11/23.
 //
 
-#ifndef MERGE_LOGGER_H
-#define MERGE_LOGGER_H
+#ifndef MYANNS_LOGGER_H
+#define MYANNS_LOGGER_H
 
 #include <omp.h>
 
@@ -61,18 +61,18 @@ public:
     operator<<(std::ostream& (*func)(std::ostream&));
 
     /**
-   * Set the verbose flag
-   * @param v A boolean value to set whether the output should be printed
-   */
+                   * Set the verbose flag
+                   * @param v A boolean value to set whether the output should be printed
+                   */
     static void
     setVerbose(bool v) {
         verbose = v;
     }
 
     /**
-   * Set the directory to store the log files
-   * @param d A string to specify the directory
-   */
+                   * Set the directory to store the log files
+                   * @param d A string to specify the directory
+                   */
     static void
     setDir(std::string& d) {
         dir = d;
@@ -85,7 +85,7 @@ public:
    * .txt
    */
     static void
-    redirect(std::string filename = "");
+    redirect(const std::string& filename = "");
 
     ~Log();
 
@@ -97,4 +97,4 @@ static Log logger;
 
 }  // namespace graph
 
-#endif  // MERGE_LOGGER_H
+#endif  // MYANNS_LOGGER_H

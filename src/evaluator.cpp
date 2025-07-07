@@ -90,10 +90,7 @@ graph::recall(std::variant<std::reference_wrapper<Index>, IndexPtr> index,
             for (int i = 20; i <= 100; i += 5) {
                 search_Ls.push_back(i);
             }
-            for (int i = 100; i <= 200; i += 10) {
-                search_Ls.push_back(i);
-            }
-            for (int i = 300; i <= 1000; i += 50) {
+            for (int i = 100; i <= 800; i += 10) {
                 search_Ls.push_back(i);
             }
         }
@@ -106,7 +103,7 @@ graph::recall(std::variant<std::reference_wrapper<Index>, IndexPtr> index,
         if (std::holds_alternative<IndexPtr>(index)) {
             calRecall(std::get<IndexPtr>(index), dataset, qsize, L, K, runs);
         } else {
-            calRecall(std::get<std::reference_wrapper<Index>>(index), dataset, qsize, L, K, runs);
+            calRecall(std::get<std::reference_wrapper<Index> >(index), dataset, qsize, L, K, runs);
         }
     }
 }
@@ -326,52 +323,49 @@ graph::dist(std::variant<std::reference_wrapper<Index>, IndexPtr> index,
     }
 }
 
-// void
-// graph::calRecall(const Graph& graph,
-//                 unsigned int K,
-//                 const Matrix<float>& query,
-//                 const std::vector<std::vector<unsigned int>>& groundTruth,
-//                 IndexOracle<float>* oracle,
-//                 unsigned search_L) {
-//     std::vector<unsigned> search_Ls;
-//     if (search_L == -1) {
-//         search_Ls = {
-//             10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600,
-//             700, 800, 900, 1000};
-//     } else {
-//         search_Ls = {search_L};
-//     }
-//     size_t qsize = query.size();
-//     size_t total = graph.size();
+//void
+//graph::calRecall(const Graph& graph,
+//                unsigned int K,
+//                const Matrix<float>& query,
+//                const std::vector<std::vector<unsigned int>>& groundTruth,
+//                IndexOracle<float>* oracle,
+//                unsigned search_L) {
+//    std::vector<unsigned> search_Ls;
+//    if (search_L == -1) {
+//        search_Ls = {
+//            10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
+//    } else {
+//        search_Ls = {search_L};
+//    }
+//    size_t qsize = query.size();
+//    size_t total = graph.size();
 //
-//     FlattenGraph fg(graph);
+//    FlattenGraph fg(graph);
 //
-//     for (auto L : search_Ls) {
-//         float recall = 0;
-//         double qps = 0;
-//         auto runs = 5;
-//         for (int x = 0; x < runs; ++x) {
-//             Timer timer;
-//             timer.start();
-//             float local_recall = 0;
-//             //#pragma omp parallel for reduction(+:local_recall)
-//             for (size_t i = 0; i < qsize; ++i) {
-//                 auto result = search(oracle, fg, query[i], K, L);
-//                 std::unordered_set<unsigned> gt(groundTruth[i].begin(),
-//                 groundTruth[i].begin() + K); size_t correct = 0; for (const
-//                 auto& res : result) {
-//                     if (gt.find(res.id) != gt.end()) {
-//                         correct++;
-//                     }
-//                 }
-//                 local_recall += static_cast<float>(correct);
-//             }
-//             timer.end();
-//             qps = std::max(qps, (double)qsize / timer.elapsed());
-//             recall = std::max(local_recall / (static_cast<float>(qsize * K)),
-//             recall);
-//         }
-//         std::cout << "L: " << L << " recall: " << recall << " qps: " << qps
-//         << std::endl;
-//     }
-// }
+//    for (auto L : search_Ls) {
+//        float recall = 0;
+//        double qps = 0;
+//        auto runs = 5;
+//        for (int x = 0; x < runs; ++x) {
+//            Timer timer;
+//            timer.start();
+//            float local_recall = 0;
+//            //#pragma omp parallel for reduction(+:local_recall)
+//            for (size_t i = 0; i < qsize; ++i) {
+//                auto result = search(oracle, fg, query[i], K, L);
+//                std::unordered_set<unsigned> gt(groundTruth[i].begin(), groundTruth[i].begin() + K);
+//                size_t correct = 0;
+//                for (const auto& res : result) {
+//                    if (gt.find(res.id) != gt.end()) {
+//                        correct++;
+//                    }
+//                }
+//                local_recall += static_cast<float>(correct);
+//            }
+//            timer.end();
+//            qps = std::max(qps, (double)qsize / timer.elapsed());
+//            recall = std::max(local_recall / (static_cast<float>(qsize * K)), recall);
+//        }
+//        std::cout << "L: " << L << " recall: " << recall << " qps: " << qps << std::endl;
+//    }
+//}

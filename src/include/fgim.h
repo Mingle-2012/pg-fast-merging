@@ -2,8 +2,8 @@
 // Created by XiaoWu on 2024/11/24.
 //
 
-#ifndef MERGE_MERGE_H
-#define MERGE_MERGE_H
+#ifndef MYANNS_MERGE_H
+#define MYANNS_MERGE_H
 
 #include "dataset.h"
 #include "dtype.h"
@@ -21,13 +21,15 @@ protected:
 
     float sample_rate_;
 
-    //        void
-    //        Sampling(Graph &graph,
-    //                 const Graph &g1,
-    //                 const Graph &g2,
-    //                 OraclePtr &oracle1,
-    //                 OraclePtr &oracle2,
-    //                 OraclePtr &oracle);
+    std::vector<size_t> offsets_;
+
+    size_t start_iter_{0};
+
+    size_t max_index_size_{0};
+
+    //TODO we can support index_name_ for each index
+    std::string serial_;
+
     virtual void
     CrossQuery(std::vector<IndexPtr>& indexes);
 
@@ -46,6 +48,12 @@ protected:
     void
     connect_no_indegree(Graph& graph);
 
+    [[nodiscard]] bool
+    are_in_same_index(size_t id1, size_t id2) const;
+
+    void
+    load_latest(Graph& graph, const std::filesystem::path& directoryPath = "./graph_output/");
+
 public:
     static constexpr unsigned ITER_MAX = 30;
 
@@ -61,24 +69,17 @@ public:
 
     ~FGIM() override = default;
 
-    //        /**
-    //               * @brief FGIM two PGs
-    //               * @param g1  The first graph
-    //               * @param oracle1 The distance oracle of the first graph
-    //               * @param g2  The second nearest neighbor graph
-    //               * @param oracle2 The distance oracle of the second graph
-    //               * @param oracle The distance oracle
-    //               * @return The merged graph
-    //               */
-    //        Graph
-    //        merge(const Graph &g1,
-    //              OraclePtr &oracle1,
-    //              const Graph &g2,
-    //              OraclePtr &oracle2,
-    //              OraclePtr &oracle);
-
     virtual void
     Combine(std::vector<IndexPtr>& indexes);
+
+    void
+    set_serial(const std::string& serial);
+
+    [[nodiscard]] const std::string&
+    get_serial() const;
+
+    void
+    print_info() const override;
 };
 
-#endif  // MERGE_MERGE_H
+#endif  // MYANNS_MERGE_H

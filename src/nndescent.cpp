@@ -4,30 +4,15 @@ nndescent::NNDescent::NNDescent(DatasetPtr& dataset, int K, float rho, float del
     : Index(dataset), K_(K), rho_(rho), delta_(delta), iteration_(iteration) {
 }
 
-// void
-// nndescent::NNDescent::build() {
-//     Timer timer;
-//     timer.start();
-//
-//     int sample = static_cast<int>(static_cast<float>(K_) * rho_);
-//     initializeGraph();
-//     for (size_t it = 0; it < iteration_; ++it) {
-//         generateUpdate();
-//         int cnt = applyUpdate(sample);
-//         logger << "Iteration " << it << " update " << cnt << " edges" <<
-//         std::endl; if (cnt <= delta_ * oracle_->size() * K_) {
-//             break;
-//         }
-//         clearGraph();
-//     }
-//#pragma omp parallel for
-//     for (auto& u : graph_) {
-//         std::sort(u.candidates_.begin(), u.candidates_.end());
-//     }
-//
-//     timer.end();
-//     logger << "Construction time: " << timer.elapsed() << "s" << std::endl;
-// }
+void
+nndescent::NNDescent::print_info() const {
+    Index::print_info();
+    logger << "NNDescent with parameters: " << std::endl;
+    logger << "K: " << K_ << std::endl;
+    logger << "rho: " << rho_ << std::endl;
+    logger << "delta: " << delta_ << std::endl;
+    logger << "iteration: " << iteration_ << std::endl;
+}
 
 void
 nndescent::NNDescent::initializeGraph() {
